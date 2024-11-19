@@ -1,5 +1,9 @@
+
 {% extends "base.html" %}
 {% block content %}
+{% if items %}
+<div class="table-container">
+    <table>
     <h1>Inventory Items</h1>
     <div class="actions">
         <a href="{{ url_for('add_item') }}" class="button add">Add New Item</a>
@@ -39,4 +43,9 @@
     {% else %}
     <p>No items in inventory.</p>
     {% endif %}
+            </table>
+</div>
+{% else %}
+<p>No items in inventory.</p>
+{% endif %}
 {% endblock %}

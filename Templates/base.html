@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Inventory System</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <nav>
-        <a href="{{ url_for('index') }}">Inventory</a>
-        <a href="{{ url_for('loans') }}">Loans</a>
-        <a href="{{ url_for('add_item') }}">Add Item</a>
-        <a href="{{ url_for('add_loan') }}">Add Loan</a>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Inventory</a>
+            <a href="{{ url_for('loans') }}">Loans</a>
+            <a href="{{ url_for('add_item') }}">Add Item</a>
+            <a href="{{ url_for('add_loan') }}">Add Loan</a>
+        </div>
     </nav>
 
     {% with messages = get_flashed_messages(with_categories=true) %}

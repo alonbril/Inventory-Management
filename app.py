@@ -166,4 +166,4 @@ def delete_item(id):
 
 if __name__ == '__main__':
     init_app()
-    app.run(debug=True)
+    app.run(host='10.100.102.193', port=80, debug=True)

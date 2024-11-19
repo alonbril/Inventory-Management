@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+{% if loans %}
+<div class="table-container">
+    <table>
     <h1>Loans</h1>
     <div class="actions">
         <a href="{{ url_for('add_loan') }}" class="button add">Add New Loan</a>
@@ -42,4 +45,9 @@
     {% else %}
     <p>No active loans.</p>
     {% endif %}
+            </table>
+</div>
+{% else %}
+<p>No active loans.</p>
+{% endif %}
 {% endblock %}
