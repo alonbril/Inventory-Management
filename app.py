@@ -28,7 +28,7 @@ def add_item():
         try:
             name = request.form['name']
             quantity = int(request.form['quantity'])
-            green_number = float(request.form['green_number'])
+            green_number = int(request.form['green_number'])
             category = request.form['category']
             status = request.form.get('status', 'no')
 
@@ -57,7 +57,7 @@ def edit_item(id):
         try:
             name = request.form['name']
             quantity = int(request.form['quantity'])
-            green_number = float(request.form['green_number'])
+            green_number = int(request.form['green_number'])
             category = request.form['category']
             status = request.form.get('status', 'no')
 
@@ -93,22 +93,44 @@ def add_loan():
         try:
             item_name = request.form['item_name']
             borrower_name = request.form['borrower_name']
+            green_number = int(request.form['green_number'])
             loan_date = request.form['loan_date']
 
             db = get_db()
             cursor = db.cursor()
+
+            # Check if green number exists in inventory
+            cursor.execute('SELECT * FROM inventory WHERE green_number = ?', (green_number,))
+            inventory_item = cursor.fetchone()
+
+            if inventory_item is None:
+                flash(f'Error: Green number {green_number} does not exist in inventory!', 'error')
+                return render_template('add_loan.html',
+                                       form_data=request.form)
+
+            # If we get here, the green number exists
             cursor.execute(
-                'INSERT INTO loans (item_name, borrower_name, loan_date) VALUES (?, ?, ?)',
-                (item_name, borrower_name, loan_date)
+                'INSERT INTO loans (item_name, borrower_name, green_number, loan_date) VALUES (?, ?, ?, ?)',
+                (item_name, borrower_name, green_number, loan_date)
             )
             db.commit()
             flash('Loan added successfully!', 'success')
+            return redirect(url_for('loans'))
+
         except Exception as e:
             flash(f'Error adding loan: {str(e)}', 'error')
             db.rollback()
-        return redirect(url_for('loans'))
+            return render_template('add_loan.html',
+                                   form_data=request.form)
 
-    return render_template('add_loan.html')
+    # For GET request, get all available green numbers for dropdown
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT DISTINCT green_number, name FROM inventory ORDER BY green_number')
+    available_items = cursor.fetchall()
+
+    return render_template('add_loan.html',
+                           available_items=available_items)
 
 
 @app.route('/return_loan/<int:id>')

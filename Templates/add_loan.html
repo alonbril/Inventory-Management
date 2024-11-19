@@ -3,20 +3,54 @@
     <h1>Add New Loan</h1>
     <form method="POST">
         <div>
-            <label for="item_name">Item Name:</label>
-            <input type="text" id="item_name" name="item_name" required>
+            <label for="borrower_name">Borrower Name:</label>
+            <input type="text" id="borrower_name" name="borrower_name"
+                   value="{{ form_data.borrower_name if form_data else '' }}" required>
         </div>
         <div>
-            <label for="borrower_name">Borrower Name:</label>
-            <input type="text" id="borrower_name" name="borrower_name" required>
+            <label for="green_number">Green Number:</label>
+            <select id="green_number" name="green_number" required onchange="updateItemName(this)">
+                <option value="">Select Green Number</option>
+                {% for item in available_items %}
+                    <option value="{{ item['green_number'] }}"
+                            data-name="{{ item['name'] }}"
+                            {% if form_data and form_data.green_number|int == item['green_number'] %}selected{% endif %}>
+                        {{ item['green_number'] }} - {{ item['name'] }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="item_name">Item Name:</label>
+            <input type="text" id="item_name" name="item_name"
+                   value="{{ form_data.item_name if form_data else '' }}" required readonly>
         </div>
         <div>
             <label for="loan_date">Loan Date:</label>
-            <input type="date" id="loan_date" name="loan_date" required>
+            <input type="date" id="loan_date" name="loan_date"
+                   value="{{ form_data.loan_date if form_data else '' }}" required>
         </div>
         <div class="form-buttons">
             <button type="submit" class="button">Add Loan</button>
             <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
         </div>
     </form>
+
+    <script>
+        // Auto-fill item name when green number is selected
+        function updateItemName(selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const itemNameInput = document.getElementById('item_name');
+            itemNameInput.value = selectedOption.dataset.name || '';
+        }
+
+        // Set initial item name if form has data
+        window.onload = function() {
+            const greenNumberSelect = document.getElementById('green_number');
+            if (greenNumberSelect.value) {
+                updateItemName(greenNumberSelect);
+            }
+        }
+    </script>
 {% endblock %}
+
