@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Edit Item</h1>
+    <form method="POST">
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="{{ item['name'] }}" required>
+        </div>
+        <div>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" value="{{ item['quantity'] }}" required min="0">
+        </div>
+        <div>
+            <label for="green_number">Green Number:</label>
+            <input type="number" id="green_number" name="green_number" value="{{ item['green_number'] }}" step="0.01" required min="0">
+        </div>
+        <div>
+            <label for="category">Category:</label>
+            <input type="text" id="category" name="category" value="{{ item['category'] }}" required>
+        </div>
+        <div>
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                <option value="no" {% if item['status'] == 'no' %}selected{% endif %}>No</option>
+                <option value="yes" {% if item['status'] == 'yes' %}selected{% endif %}>Yes</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="button">Update Item</button>
+            <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Add New Loan</h1>
+    <form method="POST">
+        <div>
+            <label for="item_name">Item Name:</label>
+            <input type="text" id="item_name" name="item_name" required>
+        </div>
+        <div>
+            <label for="borrower_name">Borrower Name:</label>
+            <input type="text" id="borrower_name" name="borrower_name" required>
+        </div>
+        <div>
+            <label for="loan_date">Loan Date:</label>
+            <input type="date" id="loan_date" name="loan_date" required>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="button">Add Loan</button>
+            <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
+        </div>
+    </form>
+{% endblock %}

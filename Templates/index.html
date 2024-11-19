@@ -1,24 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
     <h1>Inventory Items</h1>
+    <div class="actions">
+        <a href="{{ url_for('add_item') }}" class="button add">Add New Item</a>
+    </div>
+    {% if items %}
     <table>
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Name</th>
                 <th>Quantity</th>
-                <th>Price</th>
+                <th>Green Number</th>
                 <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for item in items %}
                 <tr>
+                    <td>{{ item['id'] }}</td>
                     <td>{{ item['name'] }}</td>
                     <td>{{ item['quantity'] }}</td>
-                    <td>${{ "%.2f"|format(item['price']) }}</td>
+                    <td>${{ item['green_number']|int }}</td> 
                     <td>{{ item['category'] }}</td>
+                    <td>{{ item['status'] }}</td>
+                    <td class="actions">
+                        <a href="{{ url_for('edit_item', id=item['id']) }}" class="button edit">Edit</a>
+                        <a href="{{ url_for('delete_item', id=item['id']) }}"
+                           class="button delete"
+                           onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p>No items in inventory.</p>
+    {% endif %}
 {% endblock %}

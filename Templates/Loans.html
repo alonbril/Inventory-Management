@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Loans</h1>
+    <div class="actions">
+        <a href="{{ url_for('add_loan') }}" class="button add">Add New Loan</a>
+    </div>
+    {% if loans %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Item Name</th>
+                <th>Borrower</th>
+                <th>Loan Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+                <tr>
+                    <td>{{ loan['id'] }}</td>
+                    <td>{{ loan['item_name'] }}</td>
+                    <td>{{ loan['borrower_name'] }}</td>
+                    <td>{{ loan['loan_date'] }}</td>
+                    <td>{{ loan['return_date'] or '-' }}</td>
+                    <td>{{ loan['status'] }}</td>
+                    <td class="actions">
+                        {% if loan['status'] == 'active' %}
+                        <a href="{{ url_for('return_loan', id=loan['id']) }}"
+                           class="button edit"
+                           onclick="return confirm('Mark this loan as returned?')">Return</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No active loans.</p>
+    {% endif %}
+{% endblock %}

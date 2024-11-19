@@ -8,16 +8,26 @@
         </div>
         <div>
             <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" required>
+            <input type="number" id="quantity" name="quantity" required min="0">
         </div>
         <div>
-            <label for="price">Price:</label>
-            <input type="number" id="price" name="price" step="0.01" required>
+            <label for="green_number">Green Number:</label>
+            <input type="number" id="green_number" name="green_number" step="0.01" required min="0">
         </div>
         <div>
             <label for="category">Category:</label>
             <input type="text" id="category" name="category" required>
         </div>
-        <button type="submit">Add Item</button>
+        <div>
+            <label for="status">Status:</label>
+            <select id="status" name="status">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="button">Add Item</button>
+            <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
+        </div>
     </form>
 {% endblock %}
