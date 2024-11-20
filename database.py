@@ -20,15 +20,17 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
-    # Create new tables if they don't exist
+
+    # Create or update inventory table
     with open('schema.sql', 'r') as f:
         db.executescript(f.read())
 
-    # Check if we need to update existing database
+    # Update loans table structure
     try:
-        db.execute('SELECT status FROM inventory LIMIT 1')
+        db.execute('SELECT green_number FROM loans LIMIT 1')
     except sqlite3.OperationalError:
-        # Column doesn't exist, perform update
-        with open('schema_update.sql', 'r') as f:
+        # Column doesn't exist, let's add it
+        with open('update_loans.sql', 'r') as f:
             db.executescript(f.read())
+
     db.commit()

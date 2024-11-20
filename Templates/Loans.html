@@ -1,5 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
+{% if loans %}
+<div class="table-container">
+    <table>
     <h1>Loans</h1>
     <div class="actions">
         <a href="{{ url_for('add_loan') }}" class="button add">Add New Loan</a>
@@ -9,6 +12,7 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Green Number</th>
                 <th>Item Name</th>
                 <th>Borrower</th>
                 <th>Loan Date</th>
@@ -21,6 +25,7 @@
             {% for loan in loans %}
                 <tr>
                     <td>{{ loan['id'] }}</td>
+                    <td>{{ loan['green_number'] }}</td>
                     <td>{{ loan['item_name'] }}</td>
                     <td>{{ loan['borrower_name'] }}</td>
                     <td>{{ loan['loan_date'] }}</td>
@@ -40,4 +45,9 @@
     {% else %}
     <p>No active loans.</p>
     {% endif %}
+            </table>
+</div>
+{% else %}
+<p>No active loans.</p>
+{% endif %}
 {% endblock %}
