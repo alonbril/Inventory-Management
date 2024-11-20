@@ -1,7 +1,8 @@
+# templates/add_loan.html
 {% extends "base.html" %}
 {% block content %}
     <h1>Add New Loan</h1>
-    <form method="POST">
+    <form method="POST" id="loanForm">
         <div>
             <label for="borrower_name">Borrower Name:</label>
             <input type="text" id="borrower_name" name="borrower_name"
@@ -30,12 +31,25 @@
             <input type="date" id="loan_date" name="loan_date"
                    value="{{ form_data.loan_date if form_data else '' }}" required>
         </div>
+
+        <div class="signature-container">
+            <label>Signature:</label>
+            <div class="signature-pad-wrapper">
+                <canvas id="signaturePad"></canvas>
+            </div>
+            <div class="signature-pad-buttons">
+                <button type="button" class="button" id="clearPad">Clear Signature</button>
+            </div>
+            <input type="hidden" name="signature" id="signatureData">
+        </div>
+
         <div class="form-buttons">
             <button type="submit" class="button">Add Loan</button>
             <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
         </div>
     </form>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.umd.min.js"></script>
     <script>
         // Auto-fill item name when green number is selected
         function updateItemName(selectElement) {
@@ -44,13 +58,43 @@
             itemNameInput.value = selectedOption.dataset.name || '';
         }
 
-        // Set initial item name if form has data
-        window.onload = function() {
-            const greenNumberSelect = document.getElementById('green_number');
-            if (greenNumberSelect.value) {
-                updateItemName(greenNumberSelect);
+        // Initialize signature pad
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('signaturePad');
+            const signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'rgb(0, 0, 0)',
+                minWidth: 1,
+                maxWidth: 2.5
+            });
+
+            // Handle window resize
+            function resizeCanvas() {
+                const wrapper = canvas.parentElement;
+                canvas.width = wrapper.clientWidth;
+                canvas.height = wrapper.clientHeight;
+                signaturePad.clear(); // Clear the canvas
             }
-        }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas(); // Initial resize
+
+            // Clear signature button
+            document.getElementById('clearPad').addEventListener('click', function() {
+                signaturePad.clear();
+            });
+
+            // Form submission
+            document.getElementById('loanForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (signaturePad.isEmpty()) {
+                    alert('Please provide a signature');
+                    return false;
+                }
+                document.getElementById('signatureData').value = signaturePad.toDataURL();
+                this.submit();
+            });
+        });
     </script>
 {% endblock %}
 

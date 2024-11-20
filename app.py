@@ -95,6 +95,12 @@ def add_loan():
             borrower_name = request.form['borrower_name']
             green_number = int(request.form['green_number'])
             loan_date = request.form['loan_date']
+            signature = request.form.get('signature', '')  # Get the signature data
+
+            if not signature:
+                flash('Signature is required!', 'error')
+                return render_template('add_loan.html',
+                                       form_data=request.form)
 
             db = get_db()
             cursor = db.cursor()
@@ -108,10 +114,10 @@ def add_loan():
                 return render_template('add_loan.html',
                                        form_data=request.form)
 
-            # If we get here, the green number exists
+            # Insert with signature
             cursor.execute(
-                'INSERT INTO loans (item_name, borrower_name, green_number, loan_date) VALUES (?, ?, ?, ?)',
-                (item_name, borrower_name, green_number, loan_date)
+                'INSERT INTO loans (item_name, borrower_name, green_number, loan_date, signature) VALUES (?, ?, ?, ?, ?)',
+                (item_name, borrower_name, green_number, loan_date, signature)
             )
             db.commit()
             flash('Loan added successfully!', 'success')
@@ -123,7 +129,6 @@ def add_loan():
             return render_template('add_loan.html',
                                    form_data=request.form)
 
-    # For GET request, get all available green numbers for dropdown
     db = get_db()
     cursor = db.cursor()
     cursor.execute('SELECT DISTINCT green_number, name FROM inventory ORDER BY green_number')
@@ -131,7 +136,6 @@ def add_loan():
 
     return render_template('add_loan.html',
                            available_items=available_items)
-
 
 @app.route('/return_loan/<int:id>')
 def return_loan(id):
@@ -166,4 +170,4 @@ def delete_item(id):
 
 if __name__ == '__main__':
     init_app()
-    app.run(host='10.100.102.193', port=80, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)

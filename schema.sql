@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS loans (
     green_number INTEGER NOT NULL DEFAULT 0,
     loan_date DATE NOT NULL,
     return_date DATE,
+    signature TEXT,
     status TEXT CHECK(status IN ('active', 'returned')) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

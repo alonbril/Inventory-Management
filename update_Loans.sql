@@ -1,1 +1,2 @@
 ALTER TABLE loans ADD COLUMN green_number INTEGER DEFAULT 0;
+ALTER TABLE loans ADD COLUMN signature TEXT;

@@ -184,4 +184,37 @@ input, select {
     }
 }
 
-/* Update templates to wrap tables in container */
+.signature-container {
+    margin-bottom: 20px;
+}
+
+.signature-pad-wrapper {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    height: 200px;
+    width: 100%;
+    margin-bottom: 10px;
+    touch-action: none;
+}
+
+.signature-pad-wrapper canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.signature-pad-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+}
+
+@media screen and (max-width: 768px) {
+    .signature-pad-wrapper {
+        height: 150px;
+    }
+
+    .signature-pad-buttons button {
+        flex: 1;
+    }
+}
