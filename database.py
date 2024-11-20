@@ -1,3 +1,4 @@
+# database.py
 import sqlite3
 import os
 from flask import g
@@ -21,16 +22,15 @@ def close_db(e=None):
 def init_db():
     db = get_db()
 
-    # Create or update inventory table
+    # Create tables if they don't exist
     with open('schema.sql', 'r') as f:
         db.executescript(f.read())
 
-    # Update loans table structure
+    # Check if signature column exists
     try:
-        db.execute('SELECT green_number FROM loans LIMIT 1')
+        db.execute('SELECT signature FROM loans LIMIT 1')
     except sqlite3.OperationalError:
-        # Column doesn't exist, let's add it
-        with open('update_loans.sql', 'r') as f:
-            db.executescript(f.read())
+        # Add signature column if it doesn't exist
+        db.execute('ALTER TABLE loans ADD COLUMN signature TEXT')
 
     db.commit()

@@ -95,12 +95,14 @@ def add_loan():
             borrower_name = request.form['borrower_name']
             green_number = int(request.form['green_number'])
             loan_date = request.form['loan_date']
-            signature = request.form.get('signature', '')  # Get the signature data
+            signature = request.form.get('signature', '')
 
             if not signature:
                 flash('Signature is required!', 'error')
                 return render_template('add_loan.html',
-                                       form_data=request.form)
+                                       form_data=request.form,
+                                       available_items=get_available_items(),
+                                       active_loans=get_active_loans())
 
             db = get_db()
             cursor = db.cursor()
@@ -112,9 +114,26 @@ def add_loan():
             if inventory_item is None:
                 flash(f'Error: Green number {green_number} does not exist in inventory!', 'error')
                 return render_template('add_loan.html',
-                                       form_data=request.form)
+                                       form_data=request.form,
+                                       available_items=get_available_items())
 
-            # Insert with signature
+            # Check if the item is already on loan
+            cursor.execute('''
+                SELECT * FROM loans 
+                WHERE green_number = ? 
+                AND status = 'active'
+            ''', (green_number,))
+            existing_loan = cursor.fetchone()
+
+            if existing_loan:
+                flash(f'Error: Green number {green_number} is currently on loan to {existing_loan["borrower_name"]}!',
+                      'error')
+                return render_template('add_loan.html',
+                                       form_data=request.form,
+                                       available_items=get_available_items(),
+                                       active_loans=get_active_loans())
+
+            # If we get here, the item is available for loan
             cursor.execute(
                 'INSERT INTO loans (item_name, borrower_name, green_number, loan_date, signature) VALUES (?, ?, ?, ?, ?)',
                 (item_name, borrower_name, green_number, loan_date, signature)
@@ -127,15 +146,43 @@ def add_loan():
             flash(f'Error adding loan: {str(e)}', 'error')
             db.rollback()
             return render_template('add_loan.html',
-                                   form_data=request.form)
+                                   form_data=request.form,
+                                   available_items=get_available_items(),
+                                   active_loans=get_active_loans())
 
+    # Add this helper function to get only available items
+    return render_template('add_loan.html',
+                           available_items=get_available_items(),
+                           active_loans=get_active_loans())
+
+
+# Add this helper function to get available items
+def get_available_items():
     db = get_db()
     cursor = db.cursor()
-    cursor.execute('SELECT DISTINCT green_number, name FROM inventory ORDER BY green_number')
-    available_items = cursor.fetchall()
 
-    return render_template('add_loan.html',
-                           available_items=available_items)
+    # Get items that are either not loaned or have been returned
+    cursor.execute('''
+        SELECT DISTINCT i.green_number, i.name 
+        FROM inventory i
+        LEFT JOIN loans l ON i.green_number = l.green_number AND l.status = 'active'
+        WHERE l.id IS NULL
+        ORDER BY i.green_number
+    ''')
+
+    return cursor.fetchall()
+
+def get_active_loans():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('''
+        SELECT green_number, item_name, borrower_name, loan_date 
+        FROM loans 
+        WHERE status = 'active' 
+        ORDER BY loan_date DESC
+    ''')
+    return cursor.fetchall()
+
 
 @app.route('/return_loan/<int:id>')
 def return_loan(id):

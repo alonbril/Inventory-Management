@@ -1,4 +1,3 @@
-# templates/add_loan.html
 {% extends "base.html" %}
 {% block content %}
     <h1>Add New Loan</h1>
@@ -9,7 +8,7 @@
                    value="{{ form_data.borrower_name if form_data else '' }}" required>
         </div>
         <div>
-            <label for="green_number">Green Number:</label>
+            <label for="green_number">Green Number (Available Items Only):</label>
             <select id="green_number" name="green_number" required onchange="updateItemName(this)">
                 <option value="">Select Green Number</option>
                 {% for item in available_items %}
@@ -48,6 +47,33 @@
             <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
         </div>
     </form>
+
+    <!-- Add Currently Loaned Items Section -->
+   <div class="loan-status-info">
+    <h3>Currently Loaned Items:</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Green Number</th>
+                    <th>Item Name</th>
+                    <th>Borrower</th>
+                    <th>Loan Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in active_loans %}
+                    <tr>
+                        <td>{{ loan['green_number'] }}</td>
+                        <td>{{ loan['item_name'] }}</td>
+                        <td>{{ loan['borrower_name'] }}</td>
+                        <td>{{ loan['loan_date'] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.umd.min.js"></script>
     <script>
@@ -97,4 +123,3 @@
         });
     </script>
 {% endblock %}
-
