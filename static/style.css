@@ -41,13 +41,13 @@ body {
 /* Content */
 .content {
     padding: 15px;
-    max-width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Tables */
 .table-container {
-    width: 100%;
+    width: 95%;        /* Take up slightly less than full width */
+    margin: 0 auto;    /* Center the table */
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
 }
@@ -55,21 +55,74 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 20px;
-    min-width: 600px; /* Ensures table doesn't get too squished */
+    margin: 20px auto;    /* Center the table and add vertical spacing */
+    min-width: 600px;     /* Minimum width for responsiveness */
+    max-width: 1100px;    /* Maximum width to prevent too much stretching */
 }
 
 th, td {
-    padding: 8px;
+    padding: 8px 12px;    /* Slightly more horizontal padding */
     border: 1px solid #ddd;
     text-align: left;
     font-size: 14px;
+    white-space: nowrap;  /* Prevent text wrapping */
 }
 
 th {
     background-color: #f5f5f5;
     position: sticky;
     top: 0;
+}
+
+/* Specific column widths */
+table th:nth-child(1), /* ID column */
+table td:nth-child(1) {
+    width: 5%;
+}
+
+table th:nth-child(2), /* Green Number column */
+table td:nth-child(2) {
+    width: 10%;
+}
+
+table th:nth-child(3), /* Item Name column */
+table td:nth-child(3) {
+    width: 15%;
+}
+
+table th:nth-child(4), /* Borrower column */
+table td:nth-child(4) {
+    width: 15%;
+}
+
+table th:nth-child(5), /* Loan Date column */
+table td:nth-child(5),
+table th:nth-child(6), /* Return Date column */
+table td:nth-child(6) {
+    width: 12%;
+}
+
+table th:nth-child(7), /* Status column */
+table td:nth-child(7) {
+    width: 8%;
+}
+
+table th:nth-child(8), /* Signature column */
+table td:nth-child(8) {
+    width: 15%;
+}
+
+table th:nth-child(9), /* Actions column */
+table td:nth-child(9) {
+    width: 8%;
+}
+
+/* Ensure signature images don't break layout */
+td img {
+    max-height: 50px;
+    width: auto;
+    display: block;
+    margin: 0 auto;
 }
 
 /* Forms */
@@ -158,14 +211,20 @@ input, select {
 }
 
 /* Responsive Design */
+
 @media screen and (max-width: 768px) {
     .content {
         padding: 10px;
+        max-width: 100%;
     }
 
     .table-container {
-        margin: 0 -10px;
-        padding: 0 10px;
+        width: 100%;
+        margin: 0;
+    }
+
+    table {
+        min-width: 600px;
     }
 
     th, td {
@@ -249,4 +308,93 @@ input, select {
 
 .loan-status-info th {
     background-color: #f5f5f5;
+}
+.history-btn {
+    background-color: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 10px 0;
+    transition: background-color 0.3s ease;
+}
+
+.history-btn:hover {
+    background-color: #5a6268;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Style for the signature image in the history table */
+.signature-img {
+    max-width: 150px;
+    max-height: 60px;
+    object-fit: contain;
+}
+
+/* Add some padding to table cells */
+.history-table td {
+    vertical-align: middle;
+    padding: 12px 8px;
+}
+/* Style for the back button */
+.button.back {
+    background-color: #6c757d;
+    color: white;
+}
+
+.button.back:hover {
+    background-color: #5a6268;
+}
+
+/* If you want to style specifically the loans history table */
+.table-container table tr.returned {
+    background-color: #f8f9fa;
+}
+
+/* Make return date column stand out a bit */
+.table-container table td:nth-child(6) {
+    font-weight: 500;
+}
+
+/* Remove the actions column spacing since we don't need it in history */
+.table-container table tr td:last-child {
+    padding: 8px;
+}
+
+/* Add some subtle hover effect for history rows */
+.table-container table tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.2s ease;
+}
+.button.history {
+    background-color: #4a5568;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    text-decoration: none;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.button.history:hover {
+    background-color: #2d3748;
+    color: white;
+}
+
+/* If you want to ensure proper alignment in the actions div */
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
 }

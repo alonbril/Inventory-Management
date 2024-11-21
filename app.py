@@ -82,7 +82,11 @@ def edit_item(id):
 def loans():
     db = get_db()
     cursor = db.cursor()
-    cursor.execute('SELECT * FROM loans ORDER BY id DESC')
+    cursor.execute('''
+        SELECT * FROM loans 
+        WHERE status = 'active' 
+        ORDER BY id DESC
+    ''')
     loans = cursor.fetchall()
     return render_template('loans.html', loans=loans)
 
@@ -213,6 +217,18 @@ def delete_item(id):
         flash(f'Error deleting item: {str(e)}', 'error')
         db.rollback()
     return redirect(url_for('index'))
+
+@app.route('/loans_history')
+def loans_history():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('''
+        SELECT * FROM loans 
+        WHERE status = 'returned' 
+        ORDER BY return_date DESC
+    ''')
+    history_loans = cursor.fetchall()
+    return render_template('loans_history.html', loans=history_loans)
 
 
 if __name__ == '__main__':

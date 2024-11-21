@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Loans</h1>
+    <h1>Loans History</h1>
     <div class="actions">
-         <a href="{{ url_for('loans_history') }}" class="button history">View Loans History</a>
-        <a href="{{ url_for('add_loan') }}" class="button add">Add New Loan</a>
+        <a href="{{ url_for('loans') }}" class="button back">Back to Active Loans</a>
     </div>
     {% if loans %}
     <div class="table-container">
@@ -18,7 +17,6 @@
                     <th>Return Date</th>
                     <th>Status</th>
                     <th>Signature</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -38,19 +36,12 @@
                                 No signature
                             {% endif %}
                         </td>
-                        <td class="actions">
-                            {% if loan['status'] == 'active' %}
-                            <a href="{{ url_for('return_loan', id=loan['id']) }}"
-                               class="button edit"
-                               onclick="return confirm('Mark this loan as returned?')">Return</a>
-                            {% endif %}
-                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <p>No active loans.</p>
+    <p>No loan history available.</p>
     {% endif %}
 {% endblock %}
