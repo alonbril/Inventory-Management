@@ -10,12 +10,19 @@ CREATE TABLE IF NOT EXISTS inventory (
 
 CREATE TABLE IF NOT EXISTS loans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    item_name TEXT NOT NULL,
     borrower_name TEXT NOT NULL,
-    green_number INTEGER NOT NULL,
-    loan_date DATE NOT NULL,
-    return_date DATE,
-    status TEXT CHECK(status IN ('active', 'returned')) DEFAULT 'active',
+    item_name TEXT NOT NULL,
+    green_number TEXT NOT NULL,
+    loan_date TEXT NOT NULL,
+    return_date TEXT,
     signature TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status TEXT DEFAULT 'active'
+);
+
+CREATE TABLE IF NOT EXISTS loans_equipment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    loan_id INTEGER NOT NULL,
+    equipment_type TEXT NOT NULL,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    FOREIGN KEY (loan_id) REFERENCES loans (id)
 );

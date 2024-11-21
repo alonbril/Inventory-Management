@@ -1,34 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
     <h1>Add New Loan</h1>
-    <form method="POST" id="loanForm">
+    <form method="post" id="loanForm" class="loan-form">
         <div>
             <label for="borrower_name">Borrower Name:</label>
-            <input type="text" id="borrower_name" name="borrower_name"
-                   value="{{ form_data.borrower_name if form_data else '' }}" required>
+            <input type="text" id="borrower_name" name="borrower_name" required value="{{ form_data.borrower_name if form_data else '' }}">
         </div>
-        <div>
-            <label for="green_number">Green Number (Available Items Only):</label>
-            <select id="green_number" name="green_number" required onchange="updateItemName(this)">
-                <option value="">Select Green Number</option>
-                {% for item in available_items %}
-                    <option value="{{ item['green_number'] }}"
-                            data-name="{{ item['name'] }}"
-                            {% if form_data and form_data.green_number|int == item['green_number'] %}selected{% endif %}>
-                        {{ item['green_number'] }} - {{ item['name'] }}
-                    </option>
-                {% endfor %}
-            </select>
+
+ <!-- Item Selection Container -->
+<div id="items-container">
+    <label>Select Items:</label>
+    <div class="item-row">
+        <select name="green_numbers[]" class="item-select" required style="flex: 2;">
+            <option value="">Select Item</option>
+            {% for item in available_items %}
+                <option value="{{ item.green_number }}">
+                    {{ item.green_number }} - {{ item.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="button" class="button delete remove-item" style="width: auto; min-width: 80px; margin-left: auto;">Remove</button>
+    </div>
+</div>
+<button type="button" class="button add" id="add-item" style="margin: 10px 0 20px 0;">Add More Items</button>
+<div id="selected-items-preview" class="preview-container" style="display: none;">
+    <h3>Selected Items:</h3>
+    <ul id="selected-items-list" class="preview-list"></ul>
+</div>
+
+        <!-- Equipment Selection -->
+        <div id="equipment-container">
+            <label>Additional Equipment:</label>
+            <div class="equipment-row">
+                <select name="equipment[]" class="equipment-select">
+                    <option value="">Select Equipment</option>
+                    <option value="charger">Charger</option>
+                    <option value="laptop_case">Laptop Case</option>
+                    <option value="hdmi_cable">HDMI Cable</option>
+                    <option value="mouse">Mouse</option>
+                </select>
+                <input type="number" name="equipment_quantity[]" min="1" value="1" class="equipment-quantity">
+                <button type="button" class="button delete remove-equipment">Remove</button>
+            </div>
         </div>
-        <div>
-            <label for="item_name">Item Name:</label>
-            <input type="text" id="item_name" name="item_name"
-                   value="{{ form_data.item_name if form_data else '' }}" required readonly>
+        <div id="selected-equipment-preview" class="preview-container" style="display: none;">
+            <h3>Selected Equipment:</h3>
+            <ul id="selected-equipment-list" class="preview-list"></ul>
         </div>
+        <button type="button" class="button add" id="add-equipment">Add More Equipment</button>
+
         <div>
             <label for="loan_date">Loan Date:</label>
-            <input type="date" id="loan_date" name="loan_date"
-                   value="{{ form_data.loan_date if form_data else '' }}" required>
+            <input type="date" id="loan_date" name="loan_date" required value="{{ form_data.loan_date if form_data else '' }}">
         </div>
 
         <div class="signature-container">
@@ -37,89 +60,198 @@
                 <canvas id="signaturePad"></canvas>
             </div>
             <div class="signature-pad-buttons">
-                <button type="button" class="button" id="clearPad">Clear Signature</button>
+                <button type="button" class="button cancel" id="clearPad">Clear Signature</button>
             </div>
             <input type="hidden" name="signature" id="signatureData">
         </div>
 
         <div class="form-buttons">
-            <button type="submit" class="button">Add Loan</button>
+            <button type="submit" class="button add">Add Loan</button>
             <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
         </div>
     </form>
 
-    <!-- Add Currently Loaned Items Section -->
-   <div class="loan-status-info">
-    <h3>Currently Loaned Items:</h3>
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Green Number</th>
-                    <th>Item Name</th>
-                    <th>Borrower</th>
-                    <th>Loan Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for loan in active_loans %}
-                    <tr>
-                        <td>{{ loan['green_number'] }}</td>
-                        <td>{{ loan['item_name'] }}</td>
-                        <td>{{ loan['borrower_name'] }}</td>
-                        <td>{{ loan['loan_date'] }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.min.js"></script>
     <script>
-        // Auto-fill item name when green number is selected
-        function updateItemName(selectElement) {
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            const itemNameInput = document.getElementById('item_name');
-            itemNameInput.value = selectedOption.dataset.name || '';
+        // Initialize signature pad with proper scaling
+        function initSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            const wrapper = document.querySelector('.signature-pad-wrapper');
+
+            // Set canvas dimensions to match wrapper size
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
+
+            return new SignaturePad(canvas, {
+                backgroundColor: 'white',
+                penColor: 'black'
+            });
         }
 
-        // Initialize signature pad
-        document.addEventListener('DOMContentLoaded', function() {
+        const signaturePad = initSignaturePad();
+
+        // Handle window resize for signature pad
+        window.addEventListener('resize', () => {
             const canvas = document.getElementById('signaturePad');
-            const signaturePad = new SignaturePad(canvas, {
-                backgroundColor: 'rgb(255, 255, 255)',
-                penColor: 'rgb(0, 0, 0)',
-                minWidth: 1,
-                maxWidth: 2.5
-            });
+            const wrapper = document.querySelector('.signature-pad-wrapper');
 
-            // Handle window resize
-            function resizeCanvas() {
-                const wrapper = canvas.parentElement;
-                canvas.width = wrapper.clientWidth;
-                canvas.height = wrapper.clientHeight;
-                signaturePad.clear(); // Clear the canvas
-            }
+            // Save current signature
+            const data = signaturePad.toData();
 
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas(); // Initial resize
+            // Resize canvas
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
 
-            // Clear signature button
-            document.getElementById('clearPad').addEventListener('click', function() {
-                signaturePad.clear();
-            });
-
-            // Form submission
-            document.getElementById('loanForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                if (signaturePad.isEmpty()) {
-                    alert('Please provide a signature');
-                    return false;
-                }
-                document.getElementById('signatureData').value = signaturePad.toDataURL();
-                this.submit();
-            });
+            // Restore signature
+            signaturePad.fromData(data);
         });
+
+        // Clear signature pad
+        document.getElementById('clearPad').addEventListener('click', function() {
+            signaturePad.clear();
+        });
+
+        // Items handling
+        const itemsContainer = document.getElementById('items-container');
+        document.getElementById('add-item').addEventListener('click', function() {
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <select name="green_numbers[]" class="item-select" required>
+                    <option value="">Select Item</option>
+                    {% for item in available_items %}
+                        <option value="{{ item.green_number }}">
+                            {{ item.green_number }} - {{ item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="button delete remove-item">Remove</button>
+            `;
+            itemsContainer.appendChild(newRow);
+        });
+
+        // Remove item row
+        itemsContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-item')) {
+                e.target.closest('.item-row').remove();
+            }
+        });
+
+        // Equipment handling
+        const equipmentContainer = document.getElementById('equipment-container');
+        document.getElementById('add-equipment').addEventListener('click', function() {
+            const newRow = document.createElement('div');
+            newRow.className = 'equipment-row';
+            newRow.innerHTML = `
+                <select name="equipment[]" class="equipment-select">
+                    <option value="">Select Equipment</option>
+                    <option value="charger">Charger</option>
+                    <option value="laptop_case">Laptop Case</option>
+                    <option value="hdmi_cable">HDMI Cable</option>
+                    <option value="mouse">Mouse</option>
+                </select>
+                <input type="number" name="equipment_quantity[]" min="1" value="1" class="equipment-quantity">
+                <button type="button" class="button delete remove-equipment">Remove</button>
+            `;
+            equipmentContainer.appendChild(newRow);
+        });
+
+        // Remove equipment row
+        equipmentContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-equipment')) {
+                e.target.closest('.equipment-row').remove();
+            }
+        });
+
+        // Form submission
+        document.getElementById('loanForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Add signature data
+            if (signaturePad.isEmpty()) {
+                alert('Please provide a signature');
+                return;
+            }
+            document.getElementById('signatureData').value = signaturePad.toDataURL();
+
+            this.submit();
+        });
+    function updateItemsPreview() {
+        const preview = document.getElementById('selected-items-preview');
+        const list = document.getElementById('selected-items-list');
+        const selects = document.querySelectorAll('.item-select');
+
+        list.innerHTML = '';
+        let hasSelectedItems = false;
+
+        selects.forEach(select => {
+            if (select.value) {
+                hasSelectedItems = true;
+                const option = select.options[select.selectedIndex];
+                const li = document.createElement('li');
+                li.textContent = option.text;
+                list.appendChild(li);
+            }
+        });
+
+        preview.style.display = hasSelectedItems ? 'block' : 'none';
+    }
+
+    // Function to update selected equipment preview
+    function updateEquipmentPreview() {
+        const preview = document.getElementById('selected-equipment-preview');
+        const list = document.getElementById('selected-equipment-list');
+        const containers = document.querySelectorAll('.equipment-row');
+
+        list.innerHTML = '';
+        let hasSelectedEquipment = false;
+
+        containers.forEach(container => {
+            const select = container.querySelector('.equipment-select');
+            const quantity = container.querySelector('.equipment-quantity');
+
+            if (select.value) {
+                hasSelectedEquipment = true;
+                const option = select.options[select.selectedIndex];
+                const li = document.createElement('li');
+                li.textContent = `${option.text} (Quantity: ${quantity.value})`;
+                list.appendChild(li);
+            }
+        });
+
+        preview.style.display = hasSelectedEquipment ? 'block' : 'none';
+    }
+
+    // Add event listeners for item selection changes
+    document.getElementById('items-container').addEventListener('change', function(e) {
+        if (e.target.classList.contains('item-select')) {
+            updateItemsPreview();
+        }
+    });
+
+    // Add event listeners for equipment changes
+    document.getElementById('equipment-container').addEventListener('change', function(e) {
+        if (e.target.classList.contains('equipment-select') ||
+            e.target.classList.contains('equipment-quantity')) {
+            updateEquipmentPreview();
+        }
+    });
+
+    // Update preview when adding/removing rows
+    document.getElementById('add-item').addEventListener('click', () => setTimeout(updateItemsPreview, 0));
+    document.getElementById('add-equipment').addEventListener('click', () => setTimeout(updateEquipmentPreview, 0));
+
+    // Remove row and update preview
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-item')) {
+            e.target.closest('.item-row').remove();
+            updateItemsPreview();
+        }
+        if (e.target.classList.contains('remove-equipment')) {
+            e.target.closest('.equipment-row').remove();
+            updateEquipmentPreview();
+        }
+    });
+
     </script>
 {% endblock %}

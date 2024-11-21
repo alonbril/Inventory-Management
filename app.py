@@ -114,9 +114,13 @@ def loans():
 def add_loan():
     if request.method == 'POST':
         try:
-            item_name = request.form['item_name']
+            db = get_db()
+            cursor = db.cursor()
+
             borrower_name = request.form['borrower_name']
-            green_number = int(request.form['green_number'])
+            green_numbers = request.form.getlist('green_numbers[]')  # Note the [] in the name
+            equipment = request.form.getlist('equipment[]')
+            equipment_quantities = request.form.getlist('equipment_quantity[]')
             loan_date = request.form['loan_date']
             signature = request.form.get('signature', '')
 
@@ -124,59 +128,76 @@ def add_loan():
                 flash('Signature is required!', 'error')
                 return render_template('add_loan.html',
                                        form_data=request.form,
-                                       available_items=get_available_items(),
-                                       active_loans=get_active_loans())
+                                       available_items=get_available_items())
 
-            db = get_db()
-            cursor = db.cursor()
-
-            # Check if green number exists in inventory
-            cursor.execute('SELECT * FROM inventory WHERE green_number = ?', (green_number,))
-            inventory_item = cursor.fetchone()
-
-            if inventory_item is None:
-                flash(f'Error: Green number {green_number} does not exist in inventory!', 'error')
+            if not green_numbers or not any(green_numbers):
+                flash('Please select at least one item!', 'error')
                 return render_template('add_loan.html',
                                        form_data=request.form,
                                        available_items=get_available_items())
 
-            # Check if the item is already on loan
-            cursor.execute('''
-                SELECT * FROM loans 
-                WHERE green_number = ? 
-                AND status = 'active'
-            ''', (green_number,))
-            existing_loan = cursor.fetchone()
+            # Start a transaction
+            cursor.execute('BEGIN TRANSACTION')
 
-            if existing_loan:
-                flash(f'Error: Green number {green_number} is currently on loan to {existing_loan["borrower_name"]}!',
-                      'error')
-                return render_template('add_loan.html',
-                                       form_data=request.form,
-                                       available_items=get_available_items(),
-                                       active_loans=get_active_loans())
+            try:
+                # Process each green number as a separate loan
+                for green_number in green_numbers:
+                    if not green_number:  # Skip empty selections
+                        continue
 
-            # If we get here, the item is available for loan
-            cursor.execute(
-                'INSERT INTO loans (item_name, borrower_name, green_number, loan_date, signature) VALUES (?, ?, ?, ?, ?)',
-                (item_name, borrower_name, green_number, loan_date, signature)
-            )
-            db.commit()
-            flash('Loan added successfully!', 'success')
-            return redirect(url_for('loans'))
+                    # Check if green number exists and is available
+                    cursor.execute('SELECT * FROM inventory WHERE green_number = ?', (green_number,))
+                    inventory_item = cursor.fetchone()
+
+                    if inventory_item is None:
+                        raise Exception(f'Green number {green_number} does not exist in inventory!')
+
+                    cursor.execute('''
+                        SELECT * FROM loans 
+                        WHERE green_number = ? 
+                        AND status = 'active'
+                    ''', (green_number,))
+                    existing_loan = cursor.fetchone()
+
+                    if existing_loan:
+                        raise Exception(f'Green number {green_number} is currently on loan!')
+
+                    # Create the loan record
+                    cursor.execute('''
+                        INSERT INTO loans 
+                        (borrower_name, item_name, green_number, loan_date, signature, status) 
+                        VALUES (?, ?, ?, ?, ?, 'active')
+                    ''', (borrower_name, inventory_item['name'], green_number, loan_date, signature))
+
+                    loan_id = cursor.lastrowid
+
+                    # Add equipment for this loan
+                    for equip, qty in zip(equipment, equipment_quantities):
+                        if equip:  # Only process if equipment is selected
+                            cursor.execute('''
+                                INSERT INTO loans_equipment 
+                                (loan_id, equipment_type, quantity) 
+                                VALUES (?, ?, ?)
+                            ''', (loan_id, equip, qty))
+
+                # Commit the transaction
+                cursor.execute('COMMIT')
+                flash('Loan(s) added successfully!', 'success')
+                return redirect(url_for('loans'))
+
+            except Exception as e:
+                # If anything goes wrong, rollback the transaction
+                cursor.execute('ROLLBACK')
+                raise e
 
         except Exception as e:
             flash(f'Error adding loan: {str(e)}', 'error')
-            db.rollback()
             return render_template('add_loan.html',
                                    form_data=request.form,
-                                   available_items=get_available_items(),
-                                   active_loans=get_active_loans())
+                                   available_items=get_available_items())
 
-    # Add this helper function to get only available items
     return render_template('add_loan.html',
-                           available_items=get_available_items(),
-                           active_loans=get_active_loans())
+                           available_items=get_available_items())
 
 
 # Add this helper function to get available items

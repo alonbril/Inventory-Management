@@ -239,7 +239,9 @@ input, select {
 
     h1 {
         font-size: 1.5em;
-        margin-bottom: 15px;
+        margin: 20px 0;
+        padding-bottom: 15px;
+
     }
 }
 
@@ -513,3 +515,79 @@ input, select {
     padding: 0 2px;
     border-radius: 2px;
 }
+/* Multiple select styling */
+.multi-select {
+    width: 100%;
+    min-height: 100px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* Equipment section styling */
+.equipment-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.equipment-select {
+    flex: 2;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.equipment-quantity {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-width: 100px;
+}
+
+#add-equipment {
+    margin: 10px 0 20px 0;
+}
+
+/* Form layout improvements */
+.loan-form div {
+    margin-bottom: 15px;
+}
+
+.loan-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+.item-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.item-select {
+    flex: 2;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.remove-item {
+    flex: none;
+    width: auto !important;
+    min-width: 80px !important;
+}
+
+#items-container {
+    margin-bottom: 20px;
+}
+
