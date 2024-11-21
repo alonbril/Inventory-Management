@@ -20,9 +20,25 @@ def init_app():
 def index():
     db = get_db()
     cursor = db.cursor()
-    cursor.execute('SELECT * FROM inventory ORDER BY id DESC')
+
+    # Get search query from URL parameters
+    search_query = request.args.get('search', '').strip()
+
+    if search_query:
+        # Search across multiple fields
+        cursor.execute('''
+            SELECT * FROM inventory 
+            WHERE name LIKE ? 
+            OR green_number LIKE ? 
+            OR category LIKE ?
+            OR status LIKE ?
+            ORDER BY id DESC
+        ''', (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+    else:
+        cursor.execute('SELECT * FROM inventory ORDER BY id DESC')
+
     items = cursor.fetchall()
-    return render_template('index.html', items=items)
+    return render_template('index.html', items=items, search_query=search_query)
 
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -315,6 +331,9 @@ def import_inventory():
         return redirect(url_for('index'))
 
     return render_template('import_inventory.html')
+
+
+
 
 if __name__ == '__main__':
     init_app()
