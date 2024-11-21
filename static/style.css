@@ -398,3 +398,53 @@ input, select {
     margin-bottom: 20px;
     align-items: center;
 }
+/* Import form styling */
+.import-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.import-form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.import-instructions {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 4px;
+    margin-top: 20px;
+}
+
+.import-instructions h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.import-instructions ul {
+    margin-left: 20px;
+    margin-bottom: 15px;
+}
+
+.import-instructions li {
+    margin-bottom: 5px;
+}
+
+.template-link {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+.template-link:hover {
+    text-decoration: underline;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}

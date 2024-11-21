@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Import Inventory from Excel</h1>
+
+    <div class="import-container">
+        <form method="post" enctype="multipart/form-data" class="import-form">
+            <div class="form-group">
+                <label for="file">Select Excel File</label>
+                <input type="file" id="file" name="file" accept=".xlsx,.xls" required>
+            </div>
+            <div class="button-group">
+                <button type="submit" class="button add">Import</button>
+                <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
+            </div>
+        </form>
+
+        <div class="import-instructions">
+            <h3>Instructions</h3>
+            <p>The Excel file should contain the following columns:</p>
+            <ul>
+                <li>name - Item name</li>
+                <li>quantity - Number of items</li>
+                <li>green_number - Unique identifier</li>
+                <li>category - Item category</li>
+                <li>status - Item status</li>
+            </ul>
+            <p>Download the <a href="#" onclick="downloadTemplate(); return false;" class="template-link">template file</a></p>
+            <script>
+function downloadTemplate() {
+    const template = [
+        ['name', 'quantity', 'green_number', 'category', 'status'],
+        ['Sample Item', '10', '12345', 'Electronics', 'yes/no']
+    ];
+
+    let csvContent = template.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = 'inventory_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+</script>
+        </div>
+    </div>
+{% endblock %}

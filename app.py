@@ -1,6 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, g
 from database import init_db, get_db, close_db
 from datetime import datetime, date
+import pandas as pd
+from werkzeug.utils import secure_filename
+import os
 
 app = Flask(__name__)
 app.secret_key = 'dev'
@@ -230,6 +233,88 @@ def loans_history():
     history_loans = cursor.fetchall()
     return render_template('loans_history.html', loans=history_loans)
 
+
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Create uploads folder if it doesn't exist
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route('/import_inventory', methods=['GET', 'POST'])
+def import_inventory():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            flash('No file selected', 'error')
+            return redirect(url_for('index'))
+
+        file = request.files['file']
+        if file.filename == '':
+            flash('No file selected', 'error')
+            return redirect(url_for('index'))
+
+        if file and allowed_file(file.filename):
+            try:
+                # Read Excel file
+                df = pd.read_excel(file)
+
+                # Verify required columns
+                required_columns = {'name', 'quantity', 'green_number', 'category', 'status'}
+                if not required_columns.issubset(df.columns):
+                    flash('Excel file must contain columns: name, quantity, green_number, category, status', 'error')
+                    return redirect(url_for('index'))
+
+                # Process each row
+                db = get_db()
+                cursor = db.cursor()
+                success_count = 0
+                error_count = 0
+
+                for index, row in df.iterrows():
+                    try:
+                        # Check if item with green_number already exists
+                        cursor.execute('SELECT id FROM inventory WHERE green_number = ?', (row['green_number'],))
+                        existing_item = cursor.fetchone()
+
+                        if existing_item:
+                            # Update existing item
+                            cursor.execute('''
+                                UPDATE inventory 
+                                SET name = ?, quantity = ?, category = ?, status = ?
+                                WHERE green_number = ?
+                            ''', (row['name'], row['quantity'], row['category'],
+                                  row['status'], row['green_number']))
+                        else:
+                            # Insert new item
+                            cursor.execute('''
+                                INSERT INTO inventory (name, quantity, green_number, category, status)
+                                VALUES (?, ?, ?, ?, ?)
+                            ''', (row['name'], row['quantity'], row['green_number'],
+                                  row['category'], row['status']))
+                        success_count += 1
+                    except Exception as e:
+                        error_count += 1
+                        continue
+
+                db.commit()
+                flash(f'Successfully imported {success_count} items. {error_count} errors.', 'success')
+
+            except Exception as e:
+                flash(f'Error processing file: {str(e)}', 'error')
+
+            return redirect(url_for('index'))
+
+        flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)', 'error')
+        return redirect(url_for('index'))
+
+    return render_template('import_inventory.html')
 
 if __name__ == '__main__':
     init_app()
