@@ -9,5 +9,6 @@ To run this project on your local machine you need to:
 
 
 ********
-***Credit: alonbril | shalomvanunu***
+***Owend by: alonbril***
+***Credits: shalomvanunu***
 
