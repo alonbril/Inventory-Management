@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- Add these in the head section -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <h1>Add New Loan</h1>
     <form method="post" id="loanForm" class="loan-form">
         <div>
@@ -7,12 +11,13 @@
             <input type="text" id="borrower_name" name="borrower_name" required value="{{ form_data.borrower_name if form_data else '' }}">
         </div>
 
- <!-- Item Selection Container -->
+
+<!-- Item Selection Container -->
 <div id="items-container">
     <label>Select Items:</label>
     <div class="item-row">
-        <select name="green_numbers[]" class="item-select" required style="flex: 2;">
-            <option value="">Select Item</option>
+        <select name="green_numbers[]" class="item-select searchable-select" required style="flex: 2;">
+            <option value="">Search by green number or name...</option>
             {% for item in available_items %}
                 <option value="{{ item.green_number }}">
                     {{ item.green_number }} - {{ item.name }}
@@ -27,7 +32,6 @@
     <h3>Selected Items:</h3>
     <ul id="selected-items-list" class="preview-list"></ul>
 </div>
-
         <!-- Equipment Selection -->
         <div id="equipment-container">
             <label>Additional Equipment:</label>
@@ -73,6 +77,65 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.min.js"></script>
     <script>
+// Initialize Select2 for existing select
+$(document).ready(function() {
+    // Initialize existing select
+    $('.searchable-select').select2({
+        width: '100%',
+        placeholder: 'Search by green number or name...',
+        allowClear: true
+    }).on('change', function() {
+        // Update preview when select value changes
+        updateItemsPreview();
+    });
+
+    $('#add-item').click(function() {
+        if ($('.item-row').length >= 1) {
+            // Check if the last select has a value before allowing a new row
+            const lastSelect = $('.item-row:last').find('select').val();
+            if (!lastSelect) {
+                alert('Please select an item before adding another row');
+                return;
+            }
+        }
+
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        newRow.innerHTML = `
+            <select name="green_numbers[]" class="item-select searchable-select" required style="flex: 2;">
+                <option value="">Search by green number or name...</option>
+                {% for item in available_items %}
+                    <option value="{{ item.green_number }}">
+                        {{ item.green_number }} - {{ item.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="button" class="button delete remove-item" style="width: auto; min-width: 80px; margin-left: auto;">Remove</button>
+        `;
+        $('#items-container').append(newRow);
+
+        // Initialize Select2 for the new select
+        $(newRow).find('.searchable-select').select2({
+            width: '100%',
+            placeholder: 'Search by green number or name...',
+            allowClear: true
+        }).on('change', function() {
+            // Update preview when select value changes
+            updateItemsPreview();
+        });
+    });
+
+    // Handle removing item rows
+    $(document).on('click', '.remove-item', function() {
+        const row = $(this).closest('.item-row');
+        const select2Instance = row.find('.searchable-select').data('select2');
+        if (select2Instance) {
+            select2Instance.destroy();
+        }
+        row.remove();
+        updateItemsPreview();
+    });
+});
         // Initialize signature pad with proper scaling
         function initSignaturePad() {
             const canvas = document.getElementById('signaturePad');
@@ -111,31 +174,9 @@
             signaturePad.clear();
         });
 
-        // Items handling
-        const itemsContainer = document.getElementById('items-container');
-        document.getElementById('add-item').addEventListener('click', function() {
-            const newRow = document.createElement('div');
-            newRow.className = 'item-row';
-            newRow.innerHTML = `
-                <select name="green_numbers[]" class="item-select" required>
-                    <option value="">Select Item</option>
-                    {% for item in available_items %}
-                        <option value="{{ item.green_number }}">
-                            {{ item.green_number }} - {{ item.name }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="button" class="button delete remove-item">Remove</button>
-            `;
-            itemsContainer.appendChild(newRow);
-        });
 
-        // Remove item row
-        itemsContainer.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-item')) {
-                e.target.closest('.item-row').remove();
-            }
-        });
+
+
 
         // Equipment handling
         const equipmentContainer = document.getElementById('equipment-container');
@@ -177,25 +218,26 @@
             this.submit();
         });
     function updateItemsPreview() {
-        const preview = document.getElementById('selected-items-preview');
-        const list = document.getElementById('selected-items-list');
-        const selects = document.querySelectorAll('.item-select');
+    const preview = document.getElementById('selected-items-preview');
+    const list = document.getElementById('selected-items-list');
+    const selects = document.querySelectorAll('.searchable-select');
 
-        list.innerHTML = '';
-        let hasSelectedItems = false;
+    list.innerHTML = '';
+    let hasSelectedItems = false;
 
-        selects.forEach(select => {
-            if (select.value) {
-                hasSelectedItems = true;
-                const option = select.options[select.selectedIndex];
-                const li = document.createElement('li');
-                li.textContent = option.text;
-                list.appendChild(li);
-            }
-        });
+    selects.forEach(select => {
+        const value = $(select).val();
+        if (value) {
+            hasSelectedItems = true;
+            const option = $(select).find('option:selected');
+            const li = document.createElement('li');
+            li.textContent = option.text();
+            list.appendChild(li);
+        }
+    });
 
-        preview.style.display = hasSelectedItems ? 'block' : 'none';
-    }
+    preview.style.display = hasSelectedItems ? 'block' : 'none';
+}
 
     // Function to update selected equipment preview
     function updateEquipmentPreview() {

@@ -590,4 +590,37 @@ input, select {
 #items-container {
     margin-bottom: 20px;
 }
+/* Select2 customization */
+.select2-container--default .select2-selection--single {
+    height: 38px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+}
+
+.select2-search__field {
+    padding: 6px !important;
+}
+
+.select2-results__option {
+    padding: 8px;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #2196F3;
+}
+
+/* Fix for Select2 inside flex container */
+.item-row .select2 {
+    flex: 2;
+    min-width: 0;
+}
 
