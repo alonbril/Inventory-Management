@@ -4,8 +4,20 @@ from datetime import datetime, date
 import pandas as pd
 from werkzeug.utils import secure_filename
 import os
+import sys
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
 
-app = Flask(__name__)
+    return os.path.join(base_path, relative_path)
+
+app = Flask(__name__,
+            template_folder=resource_path('templates'),
+            static_folder=resource_path('static'))
 app.secret_key = 'dev'
 
 app.teardown_appcontext(close_db)
@@ -342,6 +354,8 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Create uploads folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):
@@ -494,6 +508,7 @@ def sync_inventory():
         flash('Error synchronizing inventory status!', 'error')
     return redirect(url_for('index'))
 
+DATABASE = resource_path('inventory.db')
+
 if __name__ == '__main__':
     init_app()
-    app.run(host='0.0.0.0', port=80, debug=True)
