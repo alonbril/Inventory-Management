@@ -8,7 +8,7 @@ To run this project on your local machine you need to fork alon branch 2 and aft
 2. *In Terminal run*: pip install pandas 
 
 
-3.*In Terminal run*: python app.py
+3. *In Terminal run*: python app.py
 
 ********
 ***Owend by: alonbril***
