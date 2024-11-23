@@ -14,6 +14,7 @@ app.teardown_appcontext(close_db)
 def init_app():
     with app.app_context():
         init_db()
+        sync_inventory_status()
 
 
 @app.route('/')
@@ -24,8 +25,18 @@ def index():
     # Get search query from URL parameters
     search_query = request.args.get('search', '').strip()
 
+    # First, get the overdue loan green numbers
+    cursor.execute('''
+        SELECT DISTINCT l.green_number 
+        FROM loans l 
+        WHERE l.status = 'active' 
+        AND CAST((JULIANDAY('now') - JULIANDAY(l.loan_date)) AS INTEGER) > 7
+    ''')
+    overdue_items = cursor.fetchall()
+    overdue_green_numbers = set(str(item['green_number']) for item in overdue_items)
+
+    # Get inventory items with search if provided
     if search_query:
-        # Search across multiple fields
         cursor.execute('''
             SELECT * FROM inventory 
             WHERE name LIKE ? 
@@ -37,7 +48,13 @@ def index():
     else:
         cursor.execute('SELECT * FROM inventory ORDER BY id DESC')
 
-    items = cursor.fetchall()
+    # Fetch items and convert to list of dicts
+    items = [dict(row) for row in cursor.fetchall()]
+
+    # Add is_overdue flag to each item
+    for item in items:
+        item['is_overdue'] = str(item['green_number']) in overdue_green_numbers
+
     return render_template('index.html', items=items, search_query=search_query)
 
 
@@ -101,12 +118,26 @@ def edit_item(id):
 def loans():
     db = get_db()
     cursor = db.cursor()
+
+    # Get all active loans with calculated days active
     cursor.execute('''
-        SELECT * FROM loans 
+        SELECT *, 
+        CAST(
+            (JULIANDAY('now') - JULIANDAY(loan_date)) AS INTEGER
+        ) as days_active 
+        FROM loans 
         WHERE status = 'active' 
         ORDER BY id DESC
     ''')
     loans = cursor.fetchall()
+
+    # Convert loans to a list to modify each row
+    loans = [dict(loan) for loan in loans]
+
+    # Add overdue flag
+    for loan in loans:
+        loan['is_overdue'] = loan['days_active'] > 7
+
     return render_template('loans.html', loans=loans)
 
 
@@ -118,7 +149,7 @@ def add_loan():
             cursor = db.cursor()
 
             borrower_name = request.form['borrower_name']
-            green_numbers = request.form.getlist('green_numbers[]')  # Note the [] in the name
+            green_numbers = request.form.getlist('green_numbers[]')
             equipment = request.form.getlist('equipment[]')
             equipment_quantities = request.form.getlist('equipment_quantity[]')
             loan_date = request.form['loan_date']
@@ -169,6 +200,13 @@ def add_loan():
                         VALUES (?, ?, ?, ?, ?, 'active')
                     ''', (borrower_name, inventory_item['name'], green_number, loan_date, signature))
 
+                    # Update inventory item status to 'yes'
+                    cursor.execute('''
+                        UPDATE inventory
+                        SET status = 'yes'
+                        WHERE green_number = ?
+                    ''', (green_number,))
+
                     loan_id = cursor.lastrowid
 
                     # Add equipment for this loan
@@ -198,7 +236,6 @@ def add_loan():
 
     return render_template('add_loan.html',
                            available_items=get_available_items())
-
 
 # Add this helper function to get available items
 def get_available_items():
@@ -233,13 +270,43 @@ def return_loan(id):
     try:
         db = get_db()
         cursor = db.cursor()
-        cursor.execute('''
-            UPDATE loans 
-            SET status = 'returned', return_date = ?
-            WHERE id = ?
-        ''', (date.today().isoformat(), id))
+
+        # Start transaction
+        cursor.execute('BEGIN TRANSACTION')
+
+        # Get the green number before updating the loan
+        cursor.execute('SELECT green_number FROM loans WHERE id = ?', (id,))
+        loan = cursor.fetchone()
+
+        if loan:
+            # Update loan status to returned
+            cursor.execute('''
+                UPDATE loans 
+                SET status = 'returned', return_date = ?
+                WHERE id = ?
+            ''', (date.today().isoformat(), id))
+
+            # Check if this item has any other active loans
+            cursor.execute('''
+                SELECT COUNT(*) as active_count 
+                FROM loans 
+                WHERE green_number = ? AND status = 'active' AND id != ?
+            ''', (loan['green_number'], id))
+
+            active_count = cursor.fetchone()['active_count']
+
+            # If no other active loans, update inventory status to 'no'
+            if active_count == 0:
+                cursor.execute('''
+                    UPDATE inventory 
+                    SET status = 'no'
+                    WHERE green_number = ?
+                ''', (loan['green_number'],))
+
+        # Commit transaction
         db.commit()
         flash('Loan marked as returned!', 'success')
+
     except Exception as e:
         flash(f'Error updating loan: {str(e)}', 'error')
         db.rollback()
@@ -354,7 +421,78 @@ def import_inventory():
     return render_template('import_inventory.html')
 
 
+# Add this function at the end of your app.py, just before the if __name__ == '__main__': line
 
+def sync_inventory_status():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        # Start transaction
+        cursor.execute('BEGIN TRANSACTION')
+
+        # First, set all items to 'no'
+        cursor.execute('UPDATE inventory SET status = ?', ('no',))
+
+        # Then set items with active loans to 'yes'
+        cursor.execute('''
+            UPDATE inventory 
+            SET status = 'yes'
+            WHERE green_number IN (
+                SELECT DISTINCT green_number 
+                FROM loans 
+                WHERE status = 'active'
+            )
+        ''')
+
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error syncing inventory status: {str(e)}")
+        return False
+
+
+@app.route('/extend_loan/<int:id>')
+def extend_loan(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        # Get current loan details
+        cursor.execute('''
+            SELECT loan_date, 
+            CAST((JULIANDAY('now') - JULIANDAY(loan_date)) AS INTEGER) as days_active 
+            FROM loans 
+            WHERE id = ?
+        ''', (id,))
+        loan = cursor.fetchone()
+
+        if loan and loan['days_active'] > 7:
+            # Calculate new loan date (current loan date + 7 days)
+            cursor.execute('''
+                UPDATE loans 
+                SET loan_date = date(loan_date, '+7 days')
+                WHERE id = ?
+            ''', (id,))
+            db.commit()
+            flash('Loan extended for one week!', 'success')
+        else:
+            flash('Loan cannot be extended!', 'error')
+
+    except Exception as e:
+        flash(f'Error extending loan: {str(e)}', 'error')
+        db.rollback()
+    return redirect(url_for('loans'))
+
+# Optional: Add the route to manually trigger the sync
+@app.route('/sync_inventory_status')
+def sync_inventory():
+    if sync_inventory_status():
+        flash('Inventory status synchronized successfully!', 'success')
+    else:
+        flash('Error synchronizing inventory status!', 'error')
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     init_app()

@@ -42,7 +42,7 @@
                 </thead>
                 <tbody>
                     {% for item in items %}
-                        <tr>
+                        <tr class="{% if item.is_overdue %}overdue{% endif %}">
                             <td>{{ item['id'] }}</td>
                             <td>{{ item['name'] }}</td>
                             <td>{{ item['quantity'] }}</td>
