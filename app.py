@@ -1,10 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, g
-from database import init_db, get_db, close_db
+from database import init_db, get_db, close_db, get_db_path, verify_database_structure
 from datetime import datetime, date
 import pandas as pd
 from werkzeug.utils import secure_filename
+
 import os
 import sys
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
@@ -15,18 +22,53 @@ def resource_path(relative_path):
 
     return os.path.join(base_path, relative_path)
 
+# Define DATABASE path before app creation
+DATABASE = get_db_path()
+
 app = Flask(__name__,
             template_folder=resource_path('templates'),
             static_folder=resource_path('static'))
+
 app.secret_key = 'dev'
+
+# Configure upload folder
+UPLOAD_FOLDER = resource_path('uploads')
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Error handling
+@app.errorhandler(Exception)
+def handle_error(e):
+    logger.error(f"Unhandled error: {str(e)}", exc_info=True)
+    return render_template('error.html', error=str(e)), 500
+
+@app.before_request
+def before_request():
+    """Establish database connection before each request"""
+    try:
+        get_db()
+    except Exception as e:
+        logger.error(f"Database connection error: {str(e)}", exc_info=True)
+        return render_template('error.html', error="Database connection failed"), 500
 
 app.teardown_appcontext(close_db)
 
-
 def init_app():
-    with app.app_context():
-        init_db()
-        sync_inventory_status()
+    """Initialize the application"""
+    try:
+        with app.app_context():
+            verify_database_structure()
+            init_db()
+            sync_inventory_status()
+    except Exception as e:
+        logger.error(f"Initialization error: {str(e)}", exc_info=True)
+        raise
 
 
 @app.route('/')
@@ -508,7 +550,12 @@ def sync_inventory():
         flash('Error synchronizing inventory status!', 'error')
     return redirect(url_for('index'))
 
-DATABASE = resource_path('inventory.db')
+DATABASE = get_db_path()
 
 if __name__ == '__main__':
-    init_app()
+    try:
+        init_app()
+        app.run(debug=True, host='0.0.0.0')
+    except Exception as e:
+        logger.error(f"Startup error: {str(e)}", exc_info=True)
+        sys.exit(1)

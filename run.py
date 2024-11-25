@@ -4,57 +4,79 @@ from license_validator import LicenseValidator
 import sys
 import webbrowser
 from threading import Thread
-from app import app  # Import your Flask app
+from app import app
 import time
 import socket
 
 
 def get_local_ip():
-    """Get local machine IP"""
+    """Get local machine IP with improved fallback options"""
     try:
-        # Get local machine IP
+        # First attempt: Get IP by connecting to public DNS
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
         return local_ip
     except:
-        return "127.0.0.1"  # Fallback to localhost if can't get IP
+        try:
+            # Second attempt: Get hostname-based IP
+            host_name = socket.gethostname()
+            local_ip = socket.gethostbyname(host_name)
+            return local_ip
+        except:
+            # Final fallback: Use localhost
+            return "127.0.0.1"
+
+
+def find_available_port(start_port=5000, max_attempts=100):
+    """Find first available port starting from start_port"""
+    for port in range(start_port, start_port + max_attempts):
+        if is_port_available(port):
+            return port
+    return None
 
 
 def is_port_available(port):
-    """Check if port is available"""
+    """Check if port is available with improved error handling"""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = True
     try:
         sock.bind(("0.0.0.0", port))
-    except:
+        result = True
+    except OSError:
         result = False
-    sock.close()
+    finally:
+        sock.close()
     return result
 
 
-def wait_for_flask():
-    """Wait for Flask to be ready"""
-    attempts = 0
-    while is_port_available(5000) and attempts < 50:  # Wait up to 5 seconds
-        time.sleep(0.1)
-        attempts += 1
-    return not is_port_available(5000)
+def wait_for_flask(port):
+    """Wait for Flask to be ready with timeout"""
+    start_time = time.time()
+    timeout = 30  # 30 seconds timeout
+
+    while time.time() - start_time < timeout:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('127.0.0.1', port))
+            sock.close()
+            if result == 0:
+                return True
+            time.sleep(0.1)
+        except:
+            time.sleep(0.1)
+    return False
 
 
 def validate_license():
     validator = LicenseValidator()
 
-    # Check if license is already validated
     if validator._check_stored_license():
         return True
 
-    # Create root window for dialog boxes
     root = tk.Tk()
-    root.withdraw()  # Hide the main window
+    root.withdraw()
 
-    # Get license information
     company_name = simpledialog.askstring("License Activation", "Enter Company Name:")
     if not company_name:
         return False
@@ -63,7 +85,6 @@ def validate_license():
     if not serial_key:
         return False
 
-    # Validate license
     if validator.validate_key(serial_key, company_name):
         messagebox.showinfo("Success", "License activated successfully!")
         return True
@@ -72,14 +93,24 @@ def validate_license():
         return False
 
 
-def start_flask():
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+def start_flask(port):
+    try:
+        app.run(host='0.0.0.0', port=port, threaded=True)
+    except Exception as e:
+        print(f"Error starting Flask: {e}")
+        sys.exit(1)
 
 
-def open_browser():
-    if wait_for_flask():  # Wait for Flask to be ready
-        local_ip = get_local_ip()
-        webbrowser.open(f'http://{local_ip}:5000')
+def open_browser(ip, port):
+    if wait_for_flask(port):
+        try:
+            webbrowser.open(f'http://{ip}:{port}')
+        except Exception as e:
+            print(f"Error opening browser: {e}")
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showinfo("Manual Access Required",
+                                f"Please open your browser and go to:\nhttp://{ip}:{port}")
     else:
         root = tk.Tk()
         root.withdraw()
@@ -87,14 +118,14 @@ def open_browser():
         sys.exit(1)
 
 
-def show_loading_window():
+def show_loading_window(ip, port):
     loading_window = tk.Tk()
-    loading_window.title("Loading")
-    loading_window.geometry("300x150")
+    loading_window.title("Application Startup")
+    loading_window.geometry("400x200")
 
     # Center the window
-    window_width = 300
-    window_height = 150
+    window_width = 400
+    window_height = 200
     screen_width = loading_window.winfo_screenwidth()
     screen_height = loading_window.winfo_screenheight()
     x = (screen_width - window_width) // 2
@@ -102,12 +133,30 @@ def show_loading_window():
     loading_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
     # Loading message
-    label = tk.Label(loading_window, text="Starting application...\nPlease wait.", pady=20)
+    label = tk.Label(loading_window,
+                     text="Starting application...\nPlease wait.",
+                     pady=20,
+                     font=("Arial", 12))
     label.pack()
 
     # IP Address display
-    ip_label = tk.Label(loading_window, text=f"Server IP: {get_local_ip()}\nPort: 5000", pady=10)
+    ip_text = f"Server Address:\nLocal: http://localhost:{port}\nNetwork: http://{ip}:{port}"
+    ip_label = tk.Label(loading_window,
+                        text=ip_text,
+                        pady=10,
+                        font=("Arial", 10))
     ip_label.pack()
+
+    # Add copy button
+    def copy_to_clipboard():
+        loading_window.clipboard_clear()
+        loading_window.clipboard_append(f"http://{ip}:{port}")
+        loading_window.update()
+
+    copy_button = tk.Button(loading_window,
+                            text="Copy Address",
+                            command=copy_to_clipboard)
+    copy_button.pack(pady=10)
 
     return loading_window
 
@@ -116,24 +165,39 @@ def main():
     if not validate_license():
         sys.exit()
 
+    # Find available port
+    port = find_available_port()
+    if port is None:
+        messagebox.showerror("Error", "No available ports found. Please check your system.")
+        sys.exit(1)
+
+    # Get IP address
+    ip = get_local_ip()
+
     # Show loading window
-    loading_window = show_loading_window()
+    loading_window = show_loading_window(ip, port)
 
     # Start Flask in a separate thread
-    flask_thread = Thread(target=start_flask)
+    flask_thread = Thread(target=start_flask, args=(port,))
     flask_thread.daemon = True
     flask_thread.start()
 
     # Start browser opening in another thread
-    browser_thread = Thread(target=open_browser)
+    browser_thread = Thread(target=open_browser, args=(ip, port))
     browser_thread.daemon = True
     browser_thread.start()
 
     # Update loading window
     def check_server():
-        if not is_port_available(5000):  # Server is running
-            loading_window.destroy()
-        else:
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex(('127.0.0.1', port))
+            sock.close()
+            if result == 0:
+                loading_window.destroy()
+            else:
+                loading_window.after(100, check_server)
+        except:
             loading_window.after(100, check_server)
 
     loading_window.after(100, check_server)
