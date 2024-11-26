@@ -1,6 +1,6 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, g
+from flask import Flask, render_template, request, redirect, url_for, flash, g, session
 from database import init_db, get_db, close_db, get_db_path, verify_database_structure
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import pandas as pd
 from werkzeug.utils import secure_filename
 
@@ -38,6 +38,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 
 # Ensure upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -539,6 +540,54 @@ def extend_loan(id):
     except Exception as e:
         flash(f'Error extending loan: {str(e)}', 'error')
         db.rollback()
+    return redirect(url_for('loans'))
+
+
+@app.route('/loan/<int:id>')
+def loan_details(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        # Store the current page in session for the back button
+        session['previous_page'] = request.referrer
+
+        # Get loan details
+        cursor.execute('''
+            SELECT *, 
+            CAST((JULIANDAY('now') - JULIANDAY(loan_date)) AS INTEGER) as days_active 
+            FROM loans 
+            WHERE id = ?
+        ''', (id,))
+        loan = cursor.fetchone()
+
+        if not loan:
+            flash('Loan not found!', 'error')
+            return redirect(url_for('loans'))
+
+        # Get equipment details
+        cursor.execute('''
+            SELECT equipment_type, quantity 
+            FROM loans_equipment 
+            WHERE loan_id = ?
+        ''', (id,))
+        equipment = cursor.fetchall()
+
+        return render_template('loan_details.html',
+                               loan=loan,
+                               equipment=equipment,
+                               days_active=loan['days_active'])
+
+    except Exception as e:
+        flash(f'Error loading loan details: {str(e)}', 'error')
+        return redirect(url_for('loans'))
+
+
+@app.route('/back')
+def back_to_previous():
+    previous_page = session.get('previous_page')
+    if previous_page:
+        return redirect(previous_page)
     return redirect(url_for('loans'))
 
 # Optional: Add the route to manually trigger the sync

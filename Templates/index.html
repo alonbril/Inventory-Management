@@ -1,93 +1,110 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Inventory Items</h1>
+<h1>Inventory Items</h1>
 
-    <!-- Search Container -->
-    <div class="search-container">
-        <form action="{{ url_for('index') }}" method="get" class="search-form">
-            <input
-                type="text"
-                name="search"
-                placeholder="Search by name, green number, category..."
-                value="{{ search_query }}"
-                class="search-input"
-            >
-            <button type="submit" class="button search-btn">Search</button>
+<div class="search-container">
+    <form action="{{ url_for('index') }}" method="get" class="search-form">
+        <div class="search-input-wrapper">
+            <input type="text"
+                   name="search"
+                   class="search-input"
+                   placeholder="Search items..."
+                   value="{{ search_query }}"
+                   autocomplete="off">
             {% if search_query %}
-                <a href="{{ url_for('index') }}" class="button cancel">Clear</a>
+            <button type="button" class="clear-search" title="Clear search">×</button>
             {% endif %}
-        </form>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="actions">
-        <a href="{{ url_for('add_item') }}" class="button add">Add New Item</a>
-        <a href="{{ url_for('import_inventory') }}" class="button import">Import from Excel</a>
-    </div>
-
-    <!-- Table Content -->
-    {% if items %}
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Quantity</th>
-                        <th>Green Number</th>
-                        <th>Category</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in items %}
-                        <tr class="{% if item.is_overdue %}overdue{% endif %}">
-                            <td>{{ item['id'] }}</td>
-                            <td>{{ item['name'] }}</td>
-                            <td>{{ item['quantity'] }}</td>
-                            <td>{{ item['green_number'] }}</td>
-                            <td>{{ item['category'] }}</td>
-                            <td>{{ item['status'] }}</td>
-                            <td class="actions">
-                                <a href="{{ url_for('edit_item', id=item['id']) }}" class="button edit">Edit</a>
-                                <a href="{{ url_for('delete_item', id=item['id']) }}"
-                                   class="button delete"
-                                   onclick="return confirm('Are you sure?')">Delete</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-    {% else %}
+        <button type="submit" class="button search-btn">Search</button>
         {% if search_query %}
-            <p>No items found matching your search.</p>
-        {% else %}
-            <p>No items in inventory.</p>
+        <a href="{{ url_for('index') }}" class="button cancel">Clear All</a>
         {% endif %}
+    </form>
+</div>
+
+<div class="actions">
+    <a href="{{ url_for('add_item') }}" class="button add">Add New Item</a>
+    <a href="{{ url_for('import_inventory') }}" class="button import">Import from Excel</a>
+</div>
+
+{% if items %}
+<div class="table-container inventory-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Green#</th>
+                <th>Qty</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item['id'] }}</td>
+                <td title="{{ item['name'] }}">{{ item['name'] }}</td>
+                <td>{{ item['green_number'] }}</td>
+                <td>{{ item['quantity'] }}</td>
+                <td title="{{ item['category'] }}">{{ item['category'] }}</td>
+                <td>{{ item['status'] }}</td>
+                <td class="actions-cell">
+                    <a href="{{ url_for('edit_item', id=item['id']) }}" class="button edit">Edit</a>
+                    <a href="{{ url_for('delete_item', id=item['id']) }}"
+                       class="button delete"
+                       onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    {% if search_query %}
+    <p class="no-results">No items found matching your search.</p>
+    {% else %}
+    <p class="no-results">No items in inventory.</p>
     {% endif %}
+{% endif %}
+{% endblock %}
 
-    <script>
-        // Enable pressing Enter to submit search
-        document.querySelector('.search-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.querySelector('.search-form').submit();
-            }
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.querySelector('.search-form');
+    const searchInput = document.querySelector('.search-input');
+    const clearButton = document.querySelector('.clear-search');
+
+    // Enable pressing Enter to submit search
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            searchForm.submit();
+        }
+    });
+
+    // Clear search input when clear button is clicked
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            searchInput.value = '';
+            searchInput.focus();
+            searchForm.submit();
         });
+    }
 
-        // Optional: Add clear button functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.querySelector('.search-input');
+    // Show/hide clear button based on input
+    searchInput.addEventListener('input', function() {
+        if (clearButton) {
+            clearButton.style.display = this.value ? 'block' : 'none';
+        }
+    });
 
-            // Show/hide clear button based on input
-            searchInput.addEventListener('input', function() {
-                const clearBtn = document.querySelector('.clear-search');
-                if (clearBtn) {
-                    clearBtn.style.display = this.value ? 'block' : 'none';
-                }
-            });
-        });
-    </script>
+    // Initialize clear button visibility
+    if (clearButton && searchInput.value) {
+        clearButton.style.display = 'block';
+    }
+});
+</script>
 {% endblock %}

@@ -1,3 +1,6 @@
+/* ==========================================================================
+   Reset and Base Styles
+   ========================================================================== */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -12,7 +15,39 @@ body {
     margin: 0;
 }
 
-/* Navigation */
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* ==========================================================================
+   Layout and Containers
+   ========================================================================== */
+.content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.table-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
 .navbar {
     background-color: #333;
     padding: 10px;
@@ -38,164 +73,420 @@ body {
     background-color: #555;
 }
 
-/* Content */
-.content {
-    padding: 15px;
-    max-width: 1200px;
-    margin: 0 auto;
+/* ==========================================================================
+   Search Styles
+   ========================================================================== */
+.search-container {
+    width: 90%;
+    max-width: 1000px;
+    margin: 0 auto 20px auto;
 }
 
-.table-container {
-    width: 95%;        /* Take up slightly less than full width */
-    margin: 0 auto;    /* Center the table */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+.search-form {
+    display: flex;
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto 20px auto;
+    align-items: center;
 }
 
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 30px 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #2196F3;
+    outline: none;
+}
+
+.clear-search {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: none;
+    line-height: 1;
+    border-radius: 50%;
+}
+
+.clear-search:hover {
+    color: #666;
+    background-color: #f0f0f0;
+}
+
+/* ==========================================================================
+   Table Styles
+   ========================================================================== */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin: 20px auto;    /* Center the table and add vertical spacing */
-    min-width: 600px;     /* Minimum width for responsiveness */
-    max-width: 1100px;    /* Maximum width to prevent too much stretching */
+    margin: 0 auto;
+    font-size: 13px;
+    table-layout: fixed;
 }
 
 th, td {
-    padding: 8px 12px;    /* Slightly more horizontal padding */
+    padding: 8px;
     border: 1px solid #ddd;
     text-align: left;
-    font-size: 14px;
-    white-space: nowrap;  /* Prevent text wrapping */
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 th {
     background-color: #f5f5f5;
+    color: #333;
+    font-weight: 600;
     position: sticky;
     top: 0;
 }
 
-/* Specific column widths */
-table th:nth-child(1), /* ID column */
-table td:nth-child(1) {
-    width: 5%;
+/* Inventory Table Specific */
+.inventory-table table {
+    min-width: unset;
+    font-size: 13px;
 }
 
-table th:nth-child(2), /* Green Number column */
-table td:nth-child(2) {
-    width: 10%;
-}
-
-table th:nth-child(3), /* Item Name column */
-table td:nth-child(3) {
-    width: 15%;
-}
-
-table th:nth-child(4), /* Borrower column */
-table td:nth-child(4) {
-    width: 15%;
-}
-
-table th:nth-child(5), /* Loan Date column */
-table td:nth-child(5),
-table th:nth-child(6), /* Return Date column */
-table td:nth-child(6) {
-    width: 12%;
-}
-
-table th:nth-child(7), /* Status column */
-table td:nth-child(7) {
-    width: 8%;
-}
-
-table th:nth-child(8), /* Signature column */
-table td:nth-child(8) {
-    width: 15%;
-}
-
-table th:nth-child(9), /* Actions column */
-table td:nth-child(9) {
-    width: 8%;
-}
-
-/* Ensure signature images don't break layout */
-td img {
-    max-height: 50px;
-    width: auto;
-    display: block;
-    margin: 0 auto;
-}
-
-/* Forms */
-form {
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-form div {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-input, select {
-    width: 100%;
+.inventory-table th,
+.inventory-table td {
+    white-space: normal;
     padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-size: 16px; /* Larger font size for better touch targets */
 }
 
-/* Buttons */
+/* Inventory Table Column Widths */
+.inventory-table th:nth-child(1),
+.inventory-table td:nth-child(1) { width: 7%; text-align: center; }
+
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) { width: 13%; text-align: center; }
+
+.inventory-table th:nth-child(3),
+.inventory-table td:nth-child(3) { width: 12%; text-align: center; }
+
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4) { width: 10%; text-align: center; }
+
+.inventory-table th:nth-child(5),
+.inventory-table td:nth-child(5) { width: 18%; }
+
+.inventory-table th:nth-child(6),
+.inventory-table td:nth-child(6) { width: 12%; text-align: center; }
+
+.inventory-table th:nth-child(7),
+.inventory-table td:nth-child(7) { width: 18%; text-align: center; }
+
+/* ==========================================================================
+   Button Styles
+   ========================================================================== */
 .button {
     display: inline-block;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     text-decoration: none;
-    font-size: 14px;
+    font-size: 12px;
     margin: 2px;
-    min-width: 60px;
+    min-width: 50px;
     text-align: center;
 }
 
+/* Button Colors */
+.button.add { background-color: #4CAF50; color: white; }
+.button.edit { background-color: #2196F3; color: white; }
+.button.delete { background-color: #f44336; color: white; }
+.button.cancel { background-color: #808080; color: white; }
+.button.back { background-color: #6c757d; color: white; }
+.button.history { background-color: #4a5568; color: white; }
+.button.search-btn { background-color: #2196F3; color: white; }
+
+/* Button Hovers */
+.button.back:hover { background-color: #5a6268; }
+.button.history:hover { background-color: #2d3748; }
+.button.search-btn:hover { background-color: #1976D2; }
+.button.add:hover { background-color: #45a049; }
+.button.edit:hover { background-color: #1976D2; }
+.button.delete:hover { background-color: #d32f2f; }
+.button.cancel:hover { background-color: #666; }
+
+/* Action Buttons Container */
 .actions {
-    margin: 10px 0;
+    width: 90%;
+    max-width: 1000px;
+    margin: 0 auto 20px auto;
     display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+    gap: 10px;
+    align-items: center;
 }
 
-.button.add {
-    background-color: #4CAF50;
-    color: white;
+.actions-cell {
+    white-space: nowrap;
+    padding: 4px 8px;
 }
 
-.button.edit {
+.actions-cell .button {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin: 0 2px;
+    min-width: 45px;
+}
+
+/* ==========================================================================
+   Clickable Row Styles
+   ========================================================================== */
+.clickable-row {
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.clickable-row:hover {
+    background-color: #f0f7ff;
+}
+
+.clickable-row:active {
+    background-color: #e5f0ff;
+}
+
+.clickable-row:hover::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border: 1px solid #2196F3;
+    pointer-events: none;
+}
+
+/* Ensure overdue styling doesn't conflict */
+tr.overdue.clickable-row:hover {
+    background-color: rgba(255, 102, 102, 0.15) !important;
+}
+
+tr.overdue.clickable-row:hover::after {
+    border-color: #ff4444;
+}
+
+.clickable-row td.actions-cell {
+    position: relative;
+    z-index: 2;
+}
+
+.clickable-row td {
+    transition: color 0.2s ease;
+}
+
+.clickable-row:hover td {
+    color: #2196F3;
+}
+
+.clickable-row:hover td.actions-cell,
+tr.overdue.clickable-row:hover td {
+    color: inherit;
+}
+
+/* ==========================================================================
+   Add Loan Form Styles
+   ========================================================================== */
+.loan-form {
+    width: 90%;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 25px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2196F3;
+}
+
+/* Item Selection Row */
+.item-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+    background: white;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.item-select {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Equipment Row */
+.equipment-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+    background: white;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.equipment-select {
+    flex: 2;
+}
+
+.equipment-quantity {
+    flex: 1;
+    max-width: 120px;
+    text-align: center;
+}
+
+/* Remove Button */
+.remove-item,
+.remove-equipment {
+    flex: none;
+    width: auto !important;
+    min-width: 80px !important;
+}
+
+/* Add Buttons */
+#add-item,
+#add-equipment {
+    margin: 10px 0 20px;
+}
+
+/* Preview Containers */
+.preview-container {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+.preview-container h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+/* Signature Section */
+.signature-container {
+    margin: 20px 0;
+}
+
+.signature-pad-wrapper {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    height: 200px;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.signature-pad-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+}
+
+/* Form Buttons */
+.form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: flex-start;
+}
+
+/* Select2 Customization */
+.select2-container {
+    width: 100% !important;
+}
+
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    line-height: 38px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 12px;
+    color: #333;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+}
+
+.select2-dropdown {
+    border-color: #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
     background-color: #2196F3;
-    color: white;
 }
 
-.button.delete {
-    background-color: #f44336;
-    color: white;
-}
-
-.button.cancel {
-    background-color: #808080;
-    color: white;
-}
-
-/* Flash Messages */
+/* ==========================================================================
+   Flash Messages
+   ========================================================================== */
 .flash {
     padding: 10px;
-    margin: 10px 0;
     border-radius: 4px;
+    width: 90%;
+    max-width: 1000px;
+    margin: 10px auto;
 }
 
 .flash.success {
@@ -210,445 +501,136 @@ input, select {
     color: #721c24;
 }
 
-/* Responsive Design */
-
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
 @media screen and (max-width: 768px) {
     .content {
         padding: 10px;
-        max-width: 100%;
     }
 
     .table-container {
-        width: 100%;
-        margin: 0;
+        width: 95%;
     }
 
     table {
-        min-width: 600px;
+        font-size: 12px;
     }
 
     th, td {
         padding: 6px;
-        font-size: 13px;
     }
 
     .button {
-        padding: 6px 12px;
-        font-size: 13px;
+        padding: 8px 15px;        /* Increased padding for better touch */
+        font-size: 14px;          /* Larger font size for readability */
+        min-width: auto;          /* Remove fixed min-width */
+        height: auto;             /* Automatic height */
+        margin: 4px;              /* Even spacing */
     }
 
     h1 {
-        font-size: 1.5em;
-        margin: 20px 0;
-        padding-bottom: 15px;
-
-    }
-}
-
-.signature-container {
-    margin-bottom: 20px;
-}
-
-.signature-pad-wrapper {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-    height: 200px;
-    width: 100%;
-    margin-bottom: 10px;
-    touch-action: none;
-}
-
-.signature-pad-wrapper canvas {
-    width: 100%;
-    height: 100%;
-}
-
-.signature-pad-buttons {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-}
-
-@media screen and (max-width: 768px) {
-    .signature-pad-wrapper {
-        height: 150px;
+        font-size: 20px;
+        margin-bottom: 15px;
     }
 
-    .signature-pad-buttons button {
-        flex: 1;
-    }
-}
-.loan-status-info {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #ddd;
-}
-
-.loan-status-info h3 {
-    margin-bottom: 15px;
-    color: #333;
-}
-
-.table-container {
-    overflow-x: auto;
-    margin-top: 10px;
-}
-
-.loan-status-info table {
-    width: 100%;
-    margin-top: 10px;
-    border-collapse: collapse;
-}
-
-.loan-status-info th,
-.loan-status-info td {
-    padding: 8px;
-    border: 1px solid #ddd;
-    text-align: left;
-}
-
-.loan-status-info th {
-    background-color: #f5f5f5;
-}
-.history-btn {
-    background-color: #6c757d;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-block;
-    margin: 10px 0;
-    transition: background-color 0.3s ease;
-}
-
-.history-btn:hover {
-    background-color: #5a6268;
-    color: white;
-    text-decoration: none;
-}
-
-.btn-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-/* Style for the signature image in the history table */
-.signature-img {
-    max-width: 150px;
-    max-height: 60px;
-    object-fit: contain;
-}
-
-/* Add some padding to table cells */
-.history-table td {
-    vertical-align: middle;
-    padding: 12px 8px;
-}
-/* Style for the back button */
-.button.back {
-    background-color: #6c757d;
-    color: white;
-}
-
-.button.back:hover {
-    background-color: #5a6268;
-}
-
-/* If you want to style specifically the loans history table */
-.table-container table tr.returned {
-    background-color: #f8f9fa;
-}
-
-/* Make return date column stand out a bit */
-.table-container table td:nth-child(6) {
-    font-weight: 500;
-}
-
-/* Remove the actions column spacing since we don't need it in history */
-.table-container table tr td:last-child {
-    padding: 8px;
-}
-
-/* Add some subtle hover effect for history rows */
-.table-container table tbody tr:hover {
-    background-color: #f8f9fa;
-    transition: background-color 0.2s ease;
-}
-.button.history {
-    background-color: #4a5568;
-    color: white;
-    padding: 8px 16px;
-    border-radius: 4px;
-    text-decoration: none;
-    display: inline-block;
-    border: none;
-    cursor: pointer;
-    margin-right: 10px;
-}
-
-.button.history:hover {
-    background-color: #2d3748;
-    color: white;
-}
-
-/* If you want to ensure proper alignment in the actions div */
-.actions {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    align-items: center;
-}
-/* Import form styling */
-.import-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.import-form {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
-}
-
-.import-instructions {
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 4px;
-    margin-top: 20px;
-}
-
-.import-instructions h3 {
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.import-instructions ul {
-    margin-left: 20px;
-    margin-bottom: 15px;
-}
-
-.import-instructions li {
-    margin-bottom: 5px;
-}
-
-.template-link {
-    color: #2196F3;
-    text-decoration: none;
-}
-
-.template-link:hover {
-    text-decoration: underline;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-/* Search styling */
-.search-container {
-    margin-bottom: 20px;
-    max-width: 100%;
-}
-
-.search-form {
-    display: flex;
-    gap: 10px;
-    max-width: 600px;
-    margin: 0 auto 20px auto;
-}
-
-.search-input {
-    flex: 1;
-    padding: 8px 12px;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    font-size: 14px;
-    min-width: 200px;
-}
-
-.search-input:focus {
-    border-color: #2196F3;
-    outline: none;
-}
-
-.search-btn {
-    background-color: #2196F3;
-    color: white;
-}
-
-.search-btn:hover {
-    background-color: #1976D2;
-}
-
-/* Add this to your existing button styles */
-.button.search-btn {
-    padding: 8px 16px;
-    margin: 0;
-}
-
-/* Responsive adjustments */
-@media screen and (max-width: 768px) {
     .search-form {
         flex-wrap: wrap;
     }
 
-    .search-input {
+    .search-input-wrapper {
         width: 100%;
         flex: none;
     }
 
+    .search-input {
+        font-size: 12px;
+    }
+
     .button.search-btn,
     .button.cancel {
-        flex: 1;
+        flex: 0 1 auto;           /* Don't stretch buttons */
+        min-width: 100px;         /* Minimum width for touch */
+        width: auto;              /* Auto width based on content */
+    }
+
+    .actions-cell .button {
+        padding: 8px 12px;        /* Larger padding for touch */
+        font-size: 13px;          /* Slightly larger font */
+        min-width: 80px;          /* Minimum width for touch */
+        margin: 2px;              /* Reduced margin for tight spaces */
+    }
+
+    .loan-form {
+        width: 95%;
+        padding: 15px;
+    }
+
+    .item-row,
+    .equipment-row {
+        flex-direction: row;      /* Keep in row */
+        flex-wrap: wrap;          /* Allow wrapping */
+        gap: 8px;
+        padding: 8px;
+        align-items: center;      /* Center items vertically */
+    }
+
+    .item-select,
+    .equipment-select {
+        flex: 1;                  /* Take available space */
+        min-width: 200px;         /* Minimum width for selects */
+    }
+
+    .equipment-quantity {
+        width: 100px;             /* Fixed width for number input */
+        min-width: auto;          /* Allow shrinking */
+        margin: 0;                /* Remove margin */
+    }
+
+    .remove-item,
+    .remove-equipment {
+        width: auto !important;   /* Auto width */
+        min-width: 80px !important; /* Minimum width */
+        padding: 8px 12px;        /* Consistent padding */
+    }
+
+    .signature-pad-wrapper {
+        height: 150px;
+    }
+
+    .form-buttons {
+        flex-direction: row;      /* Keep buttons in row */
+        flex-wrap: wrap;          /* Allow wrapping */
+        gap: 8px;                 /* Space between buttons */
+        justify-content: flex-start; /* Align to start */
+    }
+
+    .form-buttons .button {
+        flex: 0 1 auto;           /* Don't stretch */
+        width: auto;              /* Auto width */
+        min-width: 120px;         /* Minimum width */
+        margin: 4px;              /* Even spacing */
+    }
+
+    /* Improve select boxes on mobile */
+    .select2-container {
+        width: 100% !important;
+        min-width: 200px;
+    }
+
+    /* Better touch targets for select2 */
+    .select2-container--default .select2-selection--single {
+        height: 42px !important;  /* Taller for touch */
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 42px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px !important;
     }
 }
-
-/* Optional: Add highlight for matching text */
-.highlight {
-    background-color: #fff3cd;
-    padding: 0 2px;
-    border-radius: 2px;
-}
-/* Multiple select styling */
-.multi-select {
-    width: 100%;
-    min-height: 100px;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-/* Equipment section styling */
-.equipment-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
-.equipment-select {
-    flex: 2;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.equipment-quantity {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    max-width: 100px;
-}
-
-#add-equipment {
-    margin: 10px 0 20px 0;
-}
-
-/* Form layout improvements */
-.loan-form div {
-    margin-bottom: 15px;
-}
-
-.loan-form label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-buttons {
-    margin-top: 20px;
-    display: flex;
-    gap: 10px;
-}
-.item-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
-.item-select {
-    flex: 2;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.remove-item {
-    flex: none;
-    width: auto !important;
-    min-width: 80px !important;
-}
-
-#items-container {
-    margin-bottom: 20px;
-}
-/* Select2 customization */
-.select2-container--default .select2-selection--single {
-    height: 38px;
-    padding: 5px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 36px;
-}
-
-.select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px;
-}
-
-.select2-search__field {
-    padding: 6px !important;
-}
-
-.select2-results__option {
-    padding: 8px;
-}
-
-.select2-container--default .select2-results__option--highlighted[aria-selected] {
-    background-color: #2196F3;
-}
-
-/* Fix for Select2 inside flex container */
-.item-row .select2 {
-    flex: 2;
-    min-width: 0;
-}
-
-
-
-/* Days active column styling */
-td:nth-child(7) {
-    font-weight: bold;
-    color: #666;
-}
-/* Overdue highlighting - Pink-ish red */
-tr.overdue {
-    background-color: rgba(255, 102, 102, 0.25) !important;
-}
-
-tr.overdue:hover {
-    background-color: rgba(255, 102, 102, 0.35) !important;
-}
-
-tr.overdue td {
-    background-color: transparent !important;
-    color: inherit;
-}
-
-tr.overdue td:nth-child(7) {
-    color: #ff4444;
-    font-weight: bold;
-}
-
-
-
+/* ==========================================================================
+   Mobile friendly buttons
+   ========================================================================== */

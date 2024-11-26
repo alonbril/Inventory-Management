@@ -1,33 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Edit Item</h1>
-    <form method="POST">
-        <div>
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" value="{{ item['name'] }}" required>
-        </div>
-        <div>
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" value="{{ item['quantity'] }}" required min="0">
-        </div>
-        <div>
-            <label for="green_number">Green Number:</label>
-            <input type="number" id="green_number" name="green_number" value="{{ item['green_number'] }}" required min="0">
-        </div>
-        <div>
-            <label for="category">Category:</label>
-            <input type="text" id="category" name="category" value="{{ item['category'] }}" required>
-        </div>
-        <div>
-            <label for="status">Status:</label>
-            <select id="status" name="status">
-                <option value="no" {% if item['status'] == 'no' %}selected{% endif %}>No</option>
-                <option value="yes" {% if item['status'] == 'yes' %}selected{% endif %}>Yes</option>
-            </select>
-        </div>
-        <div class="form-buttons">
-            <button type="submit" class="button">Update Item</button>
-            <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
-        </div>
-    </form>
+
+<div class="content">
+    <div class="table-container">
+        <h1>Edit Item</h1>
+
+        <form method="POST" class="loan-form">
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required class="search-input" value="{{ item.name }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" required min="0" class="search-input" value="{{ item.quantity }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="green_number">Green Number</label>
+                    <input type="number" id="green_number" name="green_number" required class="search-input" value="{{ item.green_number }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required class="search-input">
+                        <option value="">Select a category</option>
+                        <option value="Electronics" {% if item.category == 'Electronics' %}selected{% endif %}>Electronics</option>
+                        <option value="Equipment" {% if item.category == 'Equipment' %}selected{% endif %}>Equipment</option>
+                        <option value="Tools" {% if item.category == 'Tools' %}selected{% endif %}>Tools</option>
+                        <option value="Other" {% if item.category == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required class="search-input">
+                        <option value="no" {% if item.status == 'no' %}selected{% endif %}>Available</option>
+                        <option value="yes" {% if item.status == 'yes' %}selected{% endif %}>On Loan</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="button edit">Update Item</button>
+                <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

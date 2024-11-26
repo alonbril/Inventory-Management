@@ -1,33 +1,53 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Add New Item</h1>
-    <form method="POST">
-        <div>
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div>
-            <label for="quantity">Quantity:</label>
-            <input type="number" id="quantity" name="quantity" required min="0">
-        </div>
-        <div>
-            <label for="green_number">Green Number:</label>
-             <input type="number" id="green_number" name="green_number" required min="0">
-        </div>
-        <div>
-            <label for="category">Category:</label>
-            <input type="text" id="category" name="category" required>
-        </div>
-        <div>
-            <label for="status">Status:</label>
-            <select id="status" name="status">
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-            </select>
-        </div>
-        <div class="form-buttons">
-            <button type="submit" class="button">Add Item</button>
-            <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
-        </div>
-    </form>
+
+<div class="content">
+    <div class="table-container">
+        <h1>Add New Item</h1>
+
+        <form method="POST" class="loan-form">
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required class="search-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input type="number" id="quantity" name="quantity" required min="0" class="search-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="green_number">Green Number</label>
+                    <input type="number" id="green_number" name="green_number" required class="search-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required class="search-input">
+                        <option value="">Select a category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Equipment">Equipment</option>
+                        <option value="Tools">Tools</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" required class="search-input">
+                        <option value="no">Available</option>
+                        <option value="yes">On Loan</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="button add">Add Item</button>
+                <a href="{{ url_for('index') }}" class="button cancel">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}

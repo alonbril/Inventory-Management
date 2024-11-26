@@ -1,47 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
-    <h1>Loans History</h1>
-    <div class="actions">
-        <a href="{{ url_for('loans') }}" class="button back">Back to Active Loans</a>
-    </div>
-    {% if loans %}
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Green Number</th>
-                    <th>Item Name</th>
-                    <th>Borrower</th>
-                    <th>Loan Date</th>
-                    <th>Return Date</th>
-                    <th>Status</th>
-                    <th>Signature</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for loan in loans %}
-                    <tr>
-                        <td>{{ loan['id'] }}</td>
-                        <td>{{ loan['green_number'] }}</td>
-                        <td>{{ loan['item_name'] }}</td>
-                        <td>{{ loan['borrower_name'] }}</td>
-                        <td>{{ loan['loan_date'] }}</td>
-                        <td>{{ loan['return_date'] or '-' }}</td>
-                        <td>{{ loan['status'] }}</td>
-                        <td>
-                            {% if loan['signature'] %}
-                                <img src="{{ loan['signature'] }}" alt="Signature" style="max-height: 50px;">
-                            {% else %}
-                                No signature
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <p>No loan history available.</p>
-    {% endif %}
+<h1>Loans History</h1>
+
+<div class="actions">
+    <a href="{{ url_for('loans') }}" class="button back">Back to Active Loans</a>
+</div>
+
+{% if loans %}
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Green Number</th>
+                <th>Item Name</th>
+                <th>Borrower</th>
+                <th>Loan Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th>Signature</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for loan in loans %}
+            <tr class="clickable-row" onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
+                <td>{{ loan['id'] }}</td>
+                <td>{{ loan['green_number'] }}</td>
+                <td>{{ loan['item_name'] }}</td>
+                <td>{{ loan['borrower_name'] }}</td>
+                <td>{{ loan['loan_date'] }}</td>
+                <td>{{ loan['return_date'] or '-' }}</td>
+                <td>{{ loan['status'] }}</td>
+                <td>
+                    {% if loan['signature'] %}
+                        <img src="{{ loan['signature'] }}" style="max-height: 50px;" alt="Signature">
+                    {% else %}
+                        No signature
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p>No loan history available.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.actions .button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
+});
+</script>
 {% endblock %}
