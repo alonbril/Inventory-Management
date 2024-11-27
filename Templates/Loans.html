@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+
 <h1>Loans</h1>
 
 <div class="actions">
@@ -8,7 +9,7 @@
 </div>
 
 {% if loans %}
-<div class="table-container">
+<div class="table-container loans-table">
     <table>
         <thead>
             <tr>
@@ -25,8 +26,7 @@
         </thead>
         <tbody>
             {% for loan in loans %}
-            <tr class="clickable-row {% if loan['is_overdue'] %}overdue{% endif %}"
-                onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
+            <tr class="clickable-row" onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
                 <td>{{ loan['id'] }}</td>
                 <td>{{ loan['green_number'] }}</td>
                 <td>{{ loan['item_name'] }}</td>
@@ -36,25 +36,19 @@
                 <td>{{ loan['days_active'] }} days</td>
                 <td>
                     {% if loan['signature'] %}
-                        <img src="{{ loan['signature'] }}" style="max-height: 50px;" alt="Signature">
+                        <img src="{{ loan['signature'] }}" alt="Signature" style="max-height: 35px;">
                     {% else %}
                         No signature
                     {% endif %}
                 </td>
-                <td class="actions">
+                <td class="actions-cell">
                     {% if loan['status'] == 'active' %}
                         {% if loan['days_active'] > 7 %}
-                            <a href="{{ url_for('extend_loan', id=loan['id']) }}"
-                               class="button edit"
-                               onclick="event.stopPropagation(); return confirm('Extend this loan for one more week?')">
-                                Extend
-                            </a>
+                            <a href="{{ url_for('extend_loan', id=loan['id']) }}" class="button edit"
+                               onclick="event.stopPropagation(); return confirm('Extend this loan for one more week?')">Extend</a>
                         {% endif %}
-                        <a href="{{ url_for('return_loan', id=loan['id']) }}"
-                           class="button edit"
-                           onclick="event.stopPropagation(); return confirm('Mark this loan as returned?')">
-                            Return
-                        </a>
+                        <a href="{{ url_for('return_loan', id=loan['id']) }}" class="button edit"
+                           onclick="event.stopPropagation(); return confirm('Mark this loan as returned?')">Return</a>
                     {% endif %}
                 </td>
             </tr>

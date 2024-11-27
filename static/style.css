@@ -35,9 +35,9 @@ h1 {
 }
 
 .table-container {
-    width: 90%;
+    width: 100% !important;
     max-width: 1000px;
-    margin: 20px auto;
+    margin: 10px 0 !important;
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -135,7 +135,18 @@ h1 {
 /* ==========================================================================
    Table Styles
    ========================================================================== */
+.table-container {
+    width: 100% !important;
+    margin: 10px 0 !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 table {
+    min-width: 800px;
     width: 100%;
     border-collapse: collapse;
     margin: 0 auto;
@@ -144,7 +155,7 @@ table {
 }
 
 th, td {
-    padding: 8px;
+    padding: 12px 8px;
     border: 1px solid #ddd;
     text-align: left;
     vertical-align: middle;
@@ -153,47 +164,69 @@ th, td {
     white-space: nowrap;
 }
 
-th {
-    background-color: #f5f5f5;
-    color: #333;
-    font-weight: 600;
-    position: sticky;
-    top: 0;
-}
-
 /* Inventory Table Specific */
 .inventory-table table {
-    min-width: unset;
-    font-size: 13px;
+    min-width: 800px;
 }
 
-.inventory-table th,
-.inventory-table td {
-    white-space: normal;
-    padding: 8px;
-}
-
-/* Inventory Table Column Widths */
 .inventory-table th:nth-child(1),
-.inventory-table td:nth-child(1) { width: 7%; text-align: center; }
+.inventory-table td:nth-child(1) { min-width: 60px; width: 7%; text-align: center; }
 
 .inventory-table th:nth-child(2),
-.inventory-table td:nth-child(2) { width: 13%; text-align: center; }
+.inventory-table td:nth-child(2) { min-width: 200px; width: 25%; }
 
 .inventory-table th:nth-child(3),
-.inventory-table td:nth-child(3) { width: 12%; text-align: center; }
+.inventory-table td:nth-child(3) { min-width: 80px; width: 12%; text-align: center; }
 
 .inventory-table th:nth-child(4),
-.inventory-table td:nth-child(4) { width: 10%; text-align: center; }
+.inventory-table td:nth-child(4) { min-width: 60px; width: 10%; text-align: center; }
 
 .inventory-table th:nth-child(5),
-.inventory-table td:nth-child(5) { width: 18%; }
+.inventory-table td:nth-child(5) { min-width: 120px; width: 18%; text-align: center; }
 
 .inventory-table th:nth-child(6),
-.inventory-table td:nth-child(6) { width: 12%; text-align: center; }
+.inventory-table td:nth-child(6) { min-width: 80px; width: 12%; text-align: center; }
 
 .inventory-table th:nth-child(7),
-.inventory-table td:nth-child(7) { width: 18%; text-align: center; }
+.inventory-table td:nth-child(7) {
+    min-width: 180px;
+    width: 30%;
+    text-align: center;  /* Changed to center */
+    white-space: nowrap;
+}
+
+/* Loans Table Specific */
+.loans-table table {
+    min-width: 900px;
+}
+
+.loans-table th:nth-child(1),
+.loans-table td:nth-child(1) { min-width: 60px; width: 7%; }
+
+.loans-table th:nth-child(2),
+.loans-table td:nth-child(2) { min-width: 80px; width: 10%; }
+
+.loans-table th:nth-child(3),
+.loans-table td:nth-child(3) { min-width: 150px; width: 18%; }
+
+.loans-table th:nth-child(4),
+.loans-table td:nth-child(4) { min-width: 120px; width: 15%; }
+
+.loans-table th:nth-child(5),
+.loans-table td:nth-child(5) { min-width: 100px; width: 12%; }
+
+.loans-table th:nth-child(6),
+.loans-table td:nth-child(6) { min-width: 80px; width: 8%; }
+
+.loans-table th:nth-child(7),
+.loans-table td:nth-child(7) { min-width: 90px; width: 10%; }
+
+.loans-table th:nth-child(8),
+.loans-table td:nth-child(8) { min-width: 100px; width: 10%; }
+
+.loans-table th:nth-child(9),
+.loans-table td:nth-child(9) { min-width: 140px; width: 10%; }
+
 
 /* ==========================================================================
    Button Styles
@@ -214,7 +247,10 @@ th {
 /* Button Colors */
 .button.add { background-color: #4CAF50; color: white; }
 .button.edit { background-color: #2196F3; color: white; }
-.button.delete { background-color: #f44336; color: white; }
+.actions-cell .button.delete {
+    background-color: #f44336 !important;
+    color: white !important;
+} /* Fixed delete button color */
 .button.cancel { background-color: #808080; color: white; }
 .button.back { background-color: #6c757d; color: white; }
 .button.history { background-color: #4a5568; color: white; }
@@ -226,7 +262,9 @@ th {
 .button.search-btn:hover { background-color: #1976D2; }
 .button.add:hover { background-color: #45a049; }
 .button.edit:hover { background-color: #1976D2; }
-.button.delete:hover { background-color: #d32f2f; }
+.actions-cell .button.delete:hover {
+    background-color: #d32f2f !important;
+}
 .button.cancel:hover { background-color: #666; }
 
 /* Action Buttons Container */
@@ -242,13 +280,22 @@ th {
 .actions-cell {
     white-space: nowrap;
     padding: 4px 8px;
+    text-align: center;
+    min-width: 180px !important;
 }
 
 .actions-cell .button {
-    padding: 4px 8px;
-    font-size: 12px;
-    margin: 0 2px;
-    min-width: 45px;
+    display: inline-block !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    margin: 2px 4px !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+    text-decoration: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
 }
 
 /* ==========================================================================
@@ -430,15 +477,43 @@ tr.overdue.clickable-row:hover td {
     border: 2px solid #ddd;
     border-radius: 4px;
     background-color: #fff;
-    height: 200px;
+    height: 80px;
     width: 100%;
-    margin: 10px 0;
+    max-width: 300px;
+    margin: 10px auto;
 }
 
 .signature-pad-buttons {
     display: flex;
     gap: 10px;
     justify-content: flex-start;
+    margin-top: 10px;
+}
+
+.signature-pad-buttons button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: #dc3545;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.signature-pad-buttons button:hover {
+    background-color: #c82333;
+}
+.clear-button {
+    padding: 6px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.clear-button:hover {
+    background-color: #c82333;
 }
 
 /* Form Buttons */
@@ -505,20 +580,20 @@ tr.overdue.clickable-row:hover td {
    Responsive Design
    ========================================================================== */
 @media screen and (max-width: 768px) {
-    .content {
-        padding: 10px;
-    }
-
     .table-container {
-        width: 95%;
+        margin: 10px -10px !important;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
     }
 
     table {
-        font-size: 12px;
+        font-size: 14px !important; /* Increased from 12px */
     }
 
     th, td {
-        padding: 6px;
+        padding: 12px 8px !important;
+        font-size: 14px !important;
     }
 
     .button {
@@ -553,16 +628,31 @@ tr.overdue.clickable-row:hover td {
         min-width: 100px;         /* Minimum width for touch */
         width: auto;              /* Auto width based on content */
     }
+    .actions-cell {
+        padding: 8px !important;
+        min-width: 160px !important;
+    }
 
     .actions-cell .button {
-        padding: 8px 12px;        /* Larger padding for touch */
-        font-size: 13px;          /* Slightly larger font */
-        min-width: 80px;          /* Minimum width for touch */
-        margin: 2px;              /* Reduced margin for tight spaces */
+        padding: 8px 12px !important;
+        margin: 2px !important;
+        min-width: 60px !important;
+        font-size: 13px !important;
+    }
+        /* Show horizontal scroll indicator */
+    .table-container::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(to right, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0) 100%);
+        pointer-events: none;
     }
 
     .loan-form {
-        width: 95%;
+        width: 100%;
         padding: 15px;
     }
 
@@ -570,7 +660,7 @@ tr.overdue.clickable-row:hover td {
     .equipment-row {
         flex-direction: row;      /* Keep in row */
         flex-wrap: wrap;          /* Allow wrapping */
-        gap: 8px;
+        gap: 5px;
         padding: 8px;
         align-items: center;      /* Center items vertically */
     }
@@ -595,7 +685,7 @@ tr.overdue.clickable-row:hover td {
     }
 
     .signature-pad-wrapper {
-        height: 150px;
+        height: 120px;
     }
 
     .form-buttons {
@@ -634,3 +724,80 @@ tr.overdue.clickable-row:hover td {
 /* ==========================================================================
    Mobile friendly buttons
    ========================================================================== */
+   .loan-details-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-group {
+    margin-bottom: 20px;
+}
+
+.info-group p {
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.equipment-list {
+    margin: 10px 0;
+}
+
+.equipment-list p {
+    margin: 5px 0;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+/* New smaller signature styles */
+.signature-container-small {
+    width: 200px;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.signature-img-small {
+    width: 100%;
+    height: auto;
+    max-height: 80px;
+    object-fit: contain;
+}
+.signature-pad-wrapper {
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    height: 60px;  /* Reduced height */
+    width: 200px;  /* Fixed width */
+    margin: 10px 0;  /* Left-aligned margin */
+}
+
+.signature-section {
+    margin: 20px 0;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .loan-details-container {
+        padding: 15px;
+        margin: 10px;
+    }
+
+    .signature-container-small {
+        width: 280px;
+    }
+
+    .signature-img-small {
+        max-height: 150px;
+    }
+
+    .signature-pad-wrapper {
+        width: 280px;
+        height: 150px;
+    }
+}

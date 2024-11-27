@@ -1,93 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
+
 <div class="content">
     <h1>Loan Details</h1>
 
     <div class="loan-details-container">
         <div class="details-section">
             <h2>Loan Information</h2>
-            <table class="details-table">
-                <tr>
-                    <th>Loan ID:</th>
-                    <td>{{ loan['id'] }}</td>
-                </tr>
-                <tr>
-                    <th>Green Number:</th>
-                    <td>{{ loan['green_number'] }}</td>
-                </tr>
-                <tr>
-                    <th>Item Name:</th>
-                    <td>{{ loan['item_name'] }}</td>
-                </tr>
-                <tr>
-                    <th>Borrower:</th>
-                    <td>{{ loan['borrower_name'] }}</td>
-                </tr>
-                <tr>
-                    <th>Loan Date:</th>
-                    <td>{{ loan['loan_date'] }}</td>
-                </tr>
-                <tr>
-                    <th>Status:</th>
-                    <td>{{ loan['status'] }}</td>
-                </tr>
+            <div class="info-group">
+                <p><strong>Loan ID:</strong> {{ loan['id'] }}</p>
+                <p><strong>Green Number:</strong> {{ loan['green_number'] }}</p>
+                <p><strong>Item Name:</strong> {{ loan['item_name'] }}</p>
+                <p><strong>Borrower:</strong> {{ loan['borrower_name'] }}</p>
+                <p><strong>Loan Date:</strong> {{ loan['loan_date'] }}</p>
+                <p><strong>Status:</strong> {{ loan['status'] }}</p>
+
                 {% if loan['return_date'] %}
-                <tr>
-                    <th>Return Date:</th>
-                    <td>{{ loan['return_date'] }}</td>
-                </tr>
+                <p><strong>Return Date:</strong> {{ loan['return_date'] }}</p>
                 {% endif %}
+
                 {% if loan['status'] == 'active' %}
-                <tr>
-                    <th>Days Active:</th>
-                    <td>{{ days_active }} days</td>
-                </tr>
+                <p><strong>Days Active:</strong> {{ days_active }} days</p>
                 {% endif %}
-            </table>
+            </div>
         </div>
 
         {% if equipment %}
         <div class="equipment-section">
             <h2>Equipment Borrowed</h2>
-            <table class="equipment-table">
-                <thead>
-                    <tr>
-                        <th>Equipment Type</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in equipment %}
-                    <tr>
-                        <td>{{ item['equipment_type'] }}</td>
-                        <td>{{ item['quantity'] }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="equipment-list">
+                <p><strong>Equipment Type</strong> | <strong>Quantity</strong></p>
+                {% for item in equipment %}
+                <p>{{ item['equipment_type'] }} | {{ item['quantity'] }}</p>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
 
         {% if loan['signature'] %}
         <div class="signature-section">
             <h2>Signature</h2>
-            <img src="{{ loan['signature'] }}" alt="Borrower's signature" class="signature-img">
+            <div class="signature-container-small">
+                <img src="{{ loan['signature'] }}" alt="Borrower's signature" class="signature-img-small">
+            </div>
         </div>
         {% endif %}
-    </div>
 
-    <div class="actions">
-        <a href="{{ url_for('back_to_previous') }}" class="button back">Go Back</a>
-        {% if loan['status'] == 'active' %}
-            {% if days_active > 7 %}
-            <a href="{{ url_for('extend_loan', id=loan['id']) }}"
-               class="button edit"
-               onclick="return confirm('Extend this loan for one more week?')">Extend</a>
+        <div class="actions">
+            <a href="{{ url_for('back_to_previous') }}" class="button back">Go Back</a>
+            {% if loan['status'] == 'active' %}
+                {% if days_active > 7 %}
+                <a href="{{ url_for('extend_loan', id=loan['id']) }}" class="button edit" onclick="return confirm('Extend this loan for one more week?')">Extend</a>
+                {% endif %}
+                <a href="{{ url_for('return_loan', id=loan['id']) }}" class="button edit" onclick="return confirm('Mark this loan as returned?')">Return</a>
             {% endif %}
-            <a href="{{ url_for('return_loan', id=loan['id']) }}"
-               class="button edit"
-               onclick="return confirm('Mark this loan as returned?')">Return</a>
-        {% endif %}
+        </div>
     </div>
 </div>
+
 {% endblock %}

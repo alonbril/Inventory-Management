@@ -91,7 +91,7 @@
                         <canvas id="signaturePad"></canvas>
                     </div>
                     <div class="signature-pad-buttons">
-                        <button type="button" class="button cancel" id="clearSignature">Clear Signature</button>
+                        <button type="button" class="clear-button">Clear</button>
                     </div>
                     <input type="hidden" name="signature" id="signatureData">
                 </div>
@@ -139,6 +139,14 @@ function initializeSignaturePad() {
         throttle: 16,
         minDistance: 3
     });
+        // Clear signature button
+    const clearButton = document.querySelector('.clear-button');
+    if (clearButton) {
+        clearButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            signaturePad.clear();
+        });
+    }
 }
 
 // Add item row
@@ -258,6 +266,7 @@ function updateEquipmentPreview() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeSignaturePad();
 
+
     // Initialize Select2 for all visible selects
     document.querySelectorAll('select.select2:not([style*="display: none"])').forEach(function(select) {
         $(select).select2({
@@ -278,6 +287,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear signature button
     document.getElementById('clearSignature').addEventListener('click', function() {
         signaturePad.clear();
+        var clearButton = document.querySelector(".clear-button");
+        if (clearButton) {
+            clearButton.addEventListener("click", function(e) {
+                e.preventDefault();
+                signaturePad.clear();
+            });
+        }
     });
 
     // Set today's date as default
@@ -296,6 +312,7 @@ document.getElementById('loanForm').addEventListener('submit', function(e) {
         alert('Please provide a signature');
         return false;
     }
+
 
     document.getElementById('signatureData').value = signaturePad.toDataURL();
 
