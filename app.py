@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, g, session
+from flask import Flask, render_template, request, redirect, url_for, flash, g, session, send_from_directory
 from database import init_db, get_db, close_db, get_db_path, verify_database_structure
 from datetime import datetime, date, timedelta
 import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from werkzeug.utils import secure_filename
 
 import os
@@ -409,6 +411,68 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def create_excel_template():
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Inventory Template"
+
+    # Define headers
+    headers = ['name', 'quantity', 'green_number', 'category', 'status']
+    example_data = ['Example Item', 5, 1001, 'Electronics', 'no']
+
+    # Style definitions
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="2196F3", end_color="2196F3", fill_type="solid")
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+
+    # Apply headers and styling
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col)
+        cell.value = header
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center')
+
+    # Add example row
+    for col, value in enumerate(example_data, 1):
+        cell = ws.cell(row=2, column=col)
+        cell.value = value
+        cell.border = border
+        cell.alignment = Alignment(horizontal='center')
+
+    # Set column widths
+    ws.column_dimensions['A'].width = 30  # name
+    ws.column_dimensions['B'].width = 10  # quantity
+    ws.column_dimensions['C'].width = 15  # green_number
+    ws.column_dimensions['D'].width = 20  # category
+    ws.column_dimensions['E'].width = 10  # status
+
+    # Create templates directory if it doesn't exist
+    template_dir = os.path.join(app.static_folder, 'templates')
+    os.makedirs(template_dir, exist_ok=True)
+
+    # Save template
+    template_path = os.path.join(template_dir, 'inventory_template.xlsx')
+    wb.save(template_path)
+    return template_path
+
+
+# Add this route for template download
+@app.route('/download_template')
+def download_template():
+    template_path = create_excel_template()
+    directory = os.path.dirname(template_path)
+    filename = os.path.basename(template_path)
+    return send_from_directory(directory, filename, as_attachment=True)
+
+
+# Update your import_inventory route to include template creation
 @app.route('/import_inventory', methods=['GET', 'POST'])
 def import_inventory():
     if request.method == 'POST':
@@ -462,6 +526,7 @@ def import_inventory():
                         success_count += 1
                     except Exception as e:
                         error_count += 1
+                        logger.error(f"Error processing row {index}: {str(e)}")
                         continue
 
                 db.commit()
@@ -469,14 +534,19 @@ def import_inventory():
 
             except Exception as e:
                 flash(f'Error processing file: {str(e)}', 'error')
+                logger.error(f"Import error: {str(e)}")
 
             return redirect(url_for('index'))
 
         flash('Invalid file type. Please upload an Excel file (.xlsx or .xls)', 'error')
         return redirect(url_for('index'))
 
-    return render_template('import_inventory.html')
+    # Create template on first access
+    template_path = os.path.join(app.static_folder, 'templates', 'inventory_template.xlsx')
+    if not os.path.exists(template_path):
+        create_excel_template()
 
+    return render_template('import_inventory.html')
 
 # Add this function at the end of your app.py, just before the if __name__ == '__main__': line
 

@@ -801,3 +801,180 @@ tr.overdue.clickable-row:hover td {
         height: 150px;
     }
 }
+/* Import Page Styles */
+.import-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.upload-area:hover {
+    border-color: #2196F3;
+    background-color: #f0f7ff;
+}
+
+.upload-icon {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.upload-icon svg {
+    width: 48px;
+    height: 48px;
+}
+
+.file-label {
+    display: block;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.browse-text {
+    color: #2196F3;
+    text-decoration: underline;
+}
+
+.file-info {
+    color: #666;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+.file-input {
+    display: none;
+}
+
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.import-instructions {
+    margin-top: 40px;
+    padding: 25px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.instruction-header {
+    margin-bottom: 20px;
+}
+
+.instruction-header h3 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.requirements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.requirement-item {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease;
+}
+
+.requirement-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.requirement-header {
+    color: #2196F3;
+    font-weight: bold;
+    font-family: monospace;
+    margin-bottom: 5px;
+}
+
+.requirement-desc {
+    color: #666;
+    font-size: 14px;
+}
+
+.template-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.template-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #2196F3;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-top: 12px;
+    transition: background-color 0.2s ease;
+}
+
+.template-link:hover {
+    background-color: #1976D2;
+}
+
+.template-link svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .import-container {
+        margin: 10px;
+        padding: 20px;
+    }
+
+    .requirements-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .upload-area {
+        padding: 20px;
+    }
+}
+/* Add these to your existing CSS */
+.upload-area.dragover {
+    border-color: #2196F3;
+    background-color: #f0f7ff;
+}
+
+.file-input {
+    display: none;
+}
+
+.upload-area {
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: #2196F3;
+    background-color: #f0f7ff;
+}
