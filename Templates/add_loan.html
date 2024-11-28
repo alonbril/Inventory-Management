@@ -1,335 +1,299 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- Add these in the head section -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <h1>Add New Loan</h1>
+    <form method="post" id="loanForm" class="loan-form">
+        <div>
+            <label for="borrower_name">Borrower Name:</label>
+            <input type="text" id="borrower_name" name="borrower_name" required value="{{ form_data.borrower_name if form_data else '' }}">
+        </div>
 
-<div class="content">
-    <div class="table-container">
-        <h1>Add New Loan</h1>
 
-        <form method="POST" class="loan-form" id="loanForm">
-            <div class="form-section">
-                <div class="form-group">
-                    <label for="borrower_name">Borrower Name</label>
-                    <input type="text" id="borrower_name" name="borrower_name" required class="search-input"
-                        value="{{ form_data.borrower_name if form_data else '' }}">
-                </div>
-
-                <!-- Items Section -->
-                <div class="form-group" id="items-container">
-                    <label>Select Items</label>
-                    {% for _ in range(5) %}
-                    <div class="item-row" {% if not loop.first %}style="display: none;"{% endif %}>
-                        <div class="item-select">
-                            <select name="green_numbers[]" class="search-input select2">
-                                <option value="">Search by green number or name...</option>
-                                {% for item in available_items %}
-                                <option value="{{ item.green_number }}">
-                                    {{ item.green_number }} - {{ item.name }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% if not loop.first %}
-                        <button type="button" class="button delete remove-item" onclick="removeItem(this)">Remove</button>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <button type="button" id="add-item" class="button add" onclick="addItem()">Add More Items</button>
-
-                <div id="selected-items-preview" class="preview-container" style="display: none;">
-                    <h3>Selected Items:</h3>
-                    <div class="selected-items-list"></div>
-                </div>
-
-                <!-- Equipment Toggle -->
-                <div class="equipment-toggle">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="include-equipment" name="include_equipment">
-                        <span class="checkbox-text">Include Additional Equipment</span>
-                    </label>
-                </div>
-
-                <!-- Equipment Section -->
-                <div id="equipment-container" style="display: none;">
-                    {% for _ in range(5) %}
-                    <div class="equipment-row" {% if not loop.first %}style="display: none;"{% endif %}>
-                        <div class="equipment-select">
-                            <select name="equipment[]" class="search-input select2">
-                                <option value="">Select Equipment</option>
-                                <option value="Charger">Charger</option>
-                                <option value="Laptop Case">Laptop Case</option>
-                                <option value="HDMI Cable">HDMI Cable</option>
-                                <option value="Mouse">Mouse</option>
-                            </select>
-                        </div>
-                        <div class="equipment-quantity">
-                            <input type="number" name="equipment_quantity[]" value="1" min="1" class="search-input">
-                        </div>
-                        {% if not loop.first %}
-                        <button type="button" class="button delete remove-equipment" onclick="removeEquipment(this)">Remove</button>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-
-                    <button type="button" id="add-equipment" class="button add" onclick="addEquipment()">Add More Equipment</button>
-
-                    <div id="selected-equipment-preview" class="preview-container" style="display: none;">
-                        <h3>Selected Equipment:</h3>
-                        <div class="selected-equipment-list"></div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="loan_date">Loan Date</label>
-                    <input type="date" id="loan_date" name="loan_date" required class="search-input">
-                </div>
-
-                <div class="signature-container">
-                    <label>Signature</label>
-                    <div class="signature-pad-wrapper">
-                        <canvas id="signaturePad"></canvas>
-                    </div>
-                    <div class="signature-pad-buttons">
-                        <button type="button" class="clear-button">Clear</button>
-                    </div>
-                    <input type="hidden" name="signature" id="signatureData">
-                </div>
-            </div>
-
-            <div class="form-buttons">
-                <button type="submit" class="button add">Add Loan</button>
-                <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
-            </div>
-        </form>
+<!-- Item Selection Container -->
+<div id="items-container">
+    <label>Select Items:</label>
+    <div class="item-row">
+        <select name="green_numbers[]" class="item-select searchable-select" required style="flex: 2;">
+            <option value="">Search by green number or name...</option>
+            {% for item in available_items %}
+                <option value="{{ item.green_number }}">
+                    {{ item.green_number }} - {{ item.name }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="button" class="button delete remove-item" style="width: auto; min-width: 80px; margin-left: auto;">Remove</button>
     </div>
 </div>
+<button type="button" class="button add" id="add-item" style="margin: 10px 0 20px 0;">Add More Items</button>
+<div id="selected-items-preview" class="preview-container" style="display: none;">
+    <h3>Selected Items:</h3>
+    <ul id="selected-items-list" class="preview-list"></ul>
+</div>
+        <!-- Equipment Selection -->
+        <div id="equipment-container">
+            <label>Additional Equipment:</label>
+            <div class="equipment-row">
+                <select name="equipment[]" class="equipment-select">
+                    <option value="">Select Equipment</option>
+                    <option value="charger">Charger</option>
+                    <option value="laptop_case">Laptop Case</option>
+                    <option value="hdmi_cable">HDMI Cable</option>
+                    <option value="mouse">Mouse</option>
+                </select>
+                <input type="number" name="equipment_quantity[]" min="1" value="1" class="equipment-quantity">
+                <button type="button" class="button delete remove-equipment">Remove</button>
+            </div>
+        </div>
+        <div id="selected-equipment-preview" class="preview-container" style="display: none;">
+            <h3>Selected Equipment:</h3>
+            <ul id="selected-equipment-list" class="preview-list"></ul>
+        </div>
+        <button type="button" class="button add" id="add-equipment">Add More Equipment</button>
 
-<script>
-// Initialize signature pad
-var canvas = document.getElementById('signaturePad');
-var signaturePad;
+        <div>
+            <label for="loan_date">Loan Date:</label>
+            <input type="date" id="loan_date" name="loan_date" required value="{{ form_data.loan_date if form_data else '' }}">
+        </div>
 
-function initializeSignaturePad() {
-    var wrapper = document.querySelector('.signature-pad-wrapper');
-    var rect = wrapper.getBoundingClientRect();
+        <div class="signature-container">
+            <label>Signature:</label>
+            <div class="signature-pad-wrapper">
+                <canvas id="signaturePad"></canvas>
+            </div>
+            <div class="signature-pad-buttons">
+                <button type="button" class="button cancel" id="clearPad">Clear Signature</button>
+            </div>
+            <input type="hidden" name="signature" id="signatureData">
+        </div>
 
-    // Set canvas size to match wrapper size in actual pixels
-    var ratio = Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+        <div class="form-buttons">
+            <button type="submit" class="button add">Add Loan</button>
+            <a href="{{ url_for('loans') }}" class="button cancel">Cancel</a>
+        </div>
+    </form>
 
-    var context = canvas.getContext("2d");
-    context.scale(ratio, ratio);
-
-    // Set canvas size in CSS pixels
-    canvas.style.width = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
-
-    if (signaturePad) {
-        signaturePad.clear();
-    }
-
-    signaturePad = new SignaturePad(canvas, {
-        backgroundColor: 'rgb(255, 255, 255)',
-        penColor: 'rgb(0, 0, 0)',
-        velocityFilterWeight: 0.5,
-        minWidth: 0.5,
-        maxWidth: 2.5,
-        throttle: 16,
-        minDistance: 3
-    });
-        // Clear signature button
-    const clearButton = document.querySelector('.clear-button');
-    if (clearButton) {
-        clearButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            signaturePad.clear();
-        });
-    }
-}
-
-// Add item row
-function addItem() {
-    var container = document.getElementById('items-container');
-    var hiddenRows = container.querySelectorAll('.item-row[style*="display: none"]');
-
-    if (hiddenRows.length > 0) {
-        hiddenRows[0].style.display = '';
-        var select = hiddenRows[0].querySelector('select');
-        $(select).select2({
-            width: '100%',
-            placeholder: 'Select an option'
-        });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.5/signature_pad.min.js"></script>
+    <script>
+// Initialize Select2 for existing select
+$(document).ready(function() {
+    // Initialize existing select
+    $('.searchable-select').select2({
+        width: '100%',
+        placeholder: 'Search by green number or name...',
+        allowClear: true
+    }).on('change', function() {
+        // Update preview when select value changes
         updateItemsPreview();
-    }
-}
-
-// Remove item row
-function removeItem(button) {
-    var row = button.closest('.item-row');
-    var select = row.querySelector('select');
-    select.value = '';
-    $(select).trigger('change');
-    row.style.display = 'none';
-    updateItemsPreview();
-}
-
-// Add equipment row
-function addEquipment() {
-    var container = document.getElementById('equipment-container');
-    var hiddenRows = container.querySelectorAll('.equipment-row[style*="display: none"]');
-
-    if (hiddenRows.length > 0) {
-        hiddenRows[0].style.display = '';
-        var select = hiddenRows[0].querySelector('select');
-        $(select).select2({
-            width: '100%',
-            placeholder: 'Select an option'
-        });
-        updateEquipmentPreview();
-    }
-}
-
-// Remove equipment row
-function removeEquipment(button) {
-    var row = button.closest('.equipment-row');
-    var select = row.querySelector('select');
-    select.value = '';
-    $(select).trigger('change');
-    row.style.display = 'none';
-    updateEquipmentPreview();
-}
-
-// Equipment toggle handler
-document.getElementById('include-equipment').addEventListener('change', function() {
-    const equipmentContainer = document.getElementById('equipment-container');
-    if (this.checked) {
-        equipmentContainer.style.display = 'block';
-    } else {
-        equipmentContainer.style.display = 'none';
-        // Clear all equipment selections
-        const equipmentSelects = equipmentContainer.querySelectorAll('select[name="equipment[]"]');
-        equipmentSelects.forEach(select => {
-            select.value = '';
-            $(select).trigger('change');
-        });
-        updateEquipmentPreview();
-    }
-});
-
-// Update items preview
-function updateItemsPreview() {
-    var preview = document.getElementById('selected-items-preview');
-    var list = preview.querySelector('.selected-items-list');
-    var items = [];
-
-    document.querySelectorAll('select[name="green_numbers[]"]').forEach(function(select) {
-        if (select.value && select.closest('.item-row').style.display !== 'none') {
-            items.push(select.options[select.selectedIndex].text);
-        }
     });
 
-    if (items.length > 0) {
-        list.innerHTML = items.map(item => '<div>' + item + '</div>').join('');
-        preview.style.display = '';
-    } else {
-        preview.style.display = 'none';
-    }
-}
-
-// Update equipment preview
-function updateEquipmentPreview() {
-    var preview = document.getElementById('selected-equipment-preview');
-    var list = preview.querySelector('.selected-equipment-list');
-    var equipment = [];
-
-    document.querySelectorAll('.equipment-row').forEach(function(row) {
-        if (row.style.display !== 'none') {
-            var select = row.querySelector('select[name="equipment[]"]');
-            var quantity = row.querySelector('input[name="equipment_quantity[]"]');
-            if (select.value) {
-                equipment.push(quantity.value + 'x ' + select.options[select.selectedIndex].text);
+    $('#add-item').click(function() {
+        if ($('.item-row').length >= 1) {
+            // Check if the last select has a value before allowing a new row
+            const lastSelect = $('.item-row:last').find('select').val();
+            if (!lastSelect) {
+                alert('Please select an item before adding another row');
+                return;
             }
         }
-    });
 
-    if (equipment.length > 0) {
-        list.innerHTML = equipment.map(item => '<div>' + item + '</div>').join('');
-        preview.style.display = '';
-    } else {
-        preview.style.display = 'none';
-    }
-}
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row';
+        newRow.innerHTML = `
+            <select name="green_numbers[]" class="item-select searchable-select" required style="flex: 2;">
+                <option value="">Search by green number or name...</option>
+                {% for item in available_items %}
+                    <option value="{{ item.green_number }}">
+                        {{ item.green_number }} - {{ item.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="button" class="button delete remove-item" style="width: auto; min-width: 80px; margin-left: auto;">Remove</button>
+        `;
+        $('#items-container').append(newRow);
 
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    initializeSignaturePad();
-
-
-    // Initialize Select2 for all visible selects
-    document.querySelectorAll('select.select2:not([style*="display: none"])').forEach(function(select) {
-        $(select).select2({
+        // Initialize Select2 for the new select
+        $(newRow).find('.searchable-select').select2({
             width: '100%',
-            placeholder: 'Select an option'
+            placeholder: 'Search by green number or name...',
+            allowClear: true
+        }).on('change', function() {
+            // Update preview when select value changes
+            updateItemsPreview();
         });
     });
 
-    // Add change event listeners
-    document.querySelectorAll('select[name="green_numbers[]"]').forEach(function(select) {
-        $(select).on('change', updateItemsPreview);
+    // Handle removing item rows
+    $(document).on('click', '.remove-item', function() {
+        const row = $(this).closest('.item-row');
+        const select2Instance = row.find('.searchable-select').data('select2');
+        if (select2Instance) {
+            select2Instance.destroy();
+        }
+        row.remove();
+        updateItemsPreview();
     });
+});
+        // Initialize signature pad with proper scaling
+        function initSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            const wrapper = document.querySelector('.signature-pad-wrapper');
 
-    document.querySelectorAll('select[name="equipment[]"], input[name="equipment_quantity[]"]').forEach(function(element) {
-        $(element).on('change', updateEquipmentPreview);
-    });
+            // Set canvas dimensions to match wrapper size
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
 
-    // Clear signature button
-    document.getElementById('clearSignature').addEventListener('click', function() {
-        signaturePad.clear();
-        var clearButton = document.querySelector(".clear-button");
-        if (clearButton) {
-            clearButton.addEventListener("click", function(e) {
-                e.preventDefault();
-                signaturePad.clear();
+            return new SignaturePad(canvas, {
+                backgroundColor: 'white',
+                penColor: 'black'
             });
         }
-    });
 
-    // Set today's date as default
-    var today = new Date().toISOString().split('T')[0];
-    document.getElementById('loan_date').value = today;
-});
+        const signaturePad = initSignaturePad();
 
-// Handle window resize
-window.addEventListener("resize", initializeSignaturePad);
+        // Handle window resize for signature pad
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('signaturePad');
+            const wrapper = document.querySelector('.signature-pad-wrapper');
 
-// Form submission handler
-document.getElementById('loanForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+            // Save current signature
+            const data = signaturePad.toData();
 
-    if (signaturePad.isEmpty()) {
-        alert('Please provide a signature');
-        return false;
-    }
+            // Resize canvas
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
+
+            // Restore signature
+            signaturePad.fromData(data);
+        });
+
+        // Clear signature pad
+        document.getElementById('clearPad').addEventListener('click', function() {
+            signaturePad.clear();
+        });
 
 
-    document.getElementById('signatureData').value = signaturePad.toDataURL();
 
-    var hasSelectedItems = false;
-    document.querySelectorAll('select[name="green_numbers[]"]').forEach(function(select) {
-        if (select.value && select.closest('.item-row').style.display !== 'none') {
+
+
+        // Equipment handling
+        const equipmentContainer = document.getElementById('equipment-container');
+        document.getElementById('add-equipment').addEventListener('click', function() {
+            const newRow = document.createElement('div');
+            newRow.className = 'equipment-row';
+            newRow.innerHTML = `
+                <select name="equipment[]" class="equipment-select">
+                    <option value="">Select Equipment</option>
+                    <option value="charger">Charger</option>
+                    <option value="laptop_case">Laptop Case</option>
+                    <option value="hdmi_cable">HDMI Cable</option>
+                    <option value="mouse">Mouse</option>
+                </select>
+                <input type="number" name="equipment_quantity[]" min="1" value="1" class="equipment-quantity">
+                <button type="button" class="button delete remove-equipment">Remove</button>
+            `;
+            equipmentContainer.appendChild(newRow);
+        });
+
+        // Remove equipment row
+        equipmentContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-equipment')) {
+                e.target.closest('.equipment-row').remove();
+            }
+        });
+
+        // Form submission
+        document.getElementById('loanForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Add signature data
+            if (signaturePad.isEmpty()) {
+                alert('Please provide a signature');
+                return;
+            }
+            document.getElementById('signatureData').value = signaturePad.toDataURL();
+
+            this.submit();
+        });
+    function updateItemsPreview() {
+    const preview = document.getElementById('selected-items-preview');
+    const list = document.getElementById('selected-items-list');
+    const selects = document.querySelectorAll('.searchable-select');
+
+    list.innerHTML = '';
+    let hasSelectedItems = false;
+
+    selects.forEach(select => {
+        const value = $(select).val();
+        if (value) {
             hasSelectedItems = true;
+            const option = $(select).find('option:selected');
+            const li = document.createElement('li');
+            li.textContent = option.text();
+            list.appendChild(li);
         }
     });
 
-    if (!hasSelectedItems) {
-        alert('Please select at least one item');
-        return false;
+    preview.style.display = hasSelectedItems ? 'block' : 'none';
+}
+
+    // Function to update selected equipment preview
+    function updateEquipmentPreview() {
+        const preview = document.getElementById('selected-equipment-preview');
+        const list = document.getElementById('selected-equipment-list');
+        const containers = document.querySelectorAll('.equipment-row');
+
+        list.innerHTML = '';
+        let hasSelectedEquipment = false;
+
+        containers.forEach(container => {
+            const select = container.querySelector('.equipment-select');
+            const quantity = container.querySelector('.equipment-quantity');
+
+            if (select.value) {
+                hasSelectedEquipment = true;
+                const option = select.options[select.selectedIndex];
+                const li = document.createElement('li');
+                li.textContent = `${option.text} (Quantity: ${quantity.value})`;
+                list.appendChild(li);
+            }
+        });
+
+        preview.style.display = hasSelectedEquipment ? 'block' : 'none';
     }
 
-    this.submit();
-});
-</script>
+    // Add event listeners for item selection changes
+    document.getElementById('items-container').addEventListener('change', function(e) {
+        if (e.target.classList.contains('item-select')) {
+            updateItemsPreview();
+        }
+    });
 
+    // Add event listeners for equipment changes
+    document.getElementById('equipment-container').addEventListener('change', function(e) {
+        if (e.target.classList.contains('equipment-select') ||
+            e.target.classList.contains('equipment-quantity')) {
+            updateEquipmentPreview();
+        }
+    });
+
+    // Update preview when adding/removing rows
+    document.getElementById('add-item').addEventListener('click', () => setTimeout(updateItemsPreview, 0));
+    document.getElementById('add-equipment').addEventListener('click', () => setTimeout(updateEquipmentPreview, 0));
+
+    // Remove row and update preview
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-item')) {
+            e.target.closest('.item-row').remove();
+            updateItemsPreview();
+        }
+        if (e.target.classList.contains('remove-equipment')) {
+            e.target.closest('.equipment-row').remove();
+            updateEquipmentPreview();
+        }
+    });
+
+    </script>
 {% endblock %}

@@ -445,6 +445,8 @@ tr.overdue.clickable-row:hover td {
     flex: none;
     width: auto !important;
     min-width: 80px !important;
+    background-color: #f44336;
+    color: white;
 }
 
 /* Add Buttons */
@@ -677,11 +679,17 @@ tr.overdue.clickable-row:hover td {
         margin: 0;                /* Remove margin */
     }
 
-    .remove-item,
+    .remove-item,{
+        background-color: #f44336;
+        color: white;
+    }
     .remove-equipment {
         width: auto !important;   /* Auto width */
         min-width: 80px !important; /* Minimum width */
-        padding: 8px 12px;        /* Consistent padding */
+        padding: 8px 12px;
+        background-color: #f44336;
+        color: white;
+              /* Consistent padding */
     }
 
     .signature-pad-wrapper {
@@ -977,4 +985,29 @@ tr.overdue.clickable-row:hover td {
 .upload-area:hover {
     border-color: #2196F3;
     background-color: #f0f7ff;
+}
+#borrower_name {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+}
+
+#borrower_name:focus {
+    border-color: #2196F3;
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.2);
+    background-color: white;
+    outline: none;
+}
+
+/* Style the label */
+label[for="borrower_name"] {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
 }
