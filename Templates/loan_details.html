@@ -2,57 +2,106 @@
 {% block content %}
 
 <div class="content">
-    <h1>Loan Details</h1>
-
-    <div class="loan-details-container">
-        <div class="details-section">
-            <h2>Loan Information</h2>
-            <div class="info-group">
-                <p><strong>Loan ID:</strong> {{ loan['id'] }}</p>
-                <p><strong>Green Number:</strong> {{ loan['green_number'] }}</p>
-                <p><strong>Item Name:</strong> {{ loan['item_name'] }}</p>
-                <p><strong>Borrower:</strong> {{ loan['borrower_name'] }}</p>
-                <p><strong>Loan Date:</strong> {{ loan['loan_date'] }}</p>
-                <p><strong>Status:</strong> {{ loan['status'] }}</p>
-
-                {% if loan['return_date'] %}
-                <p><strong>Return Date:</strong> {{ loan['return_date'] }}</p>
-                {% endif %}
-
-                {% if loan['status'] == 'active' %}
-                <p><strong>Days Active:</strong> {{ days_active }} days</p>
-                {% endif %}
-            </div>
+    <div class="loan-details-card">
+        <div class="loan-header">
+            <h1>Loan Details</h1>
+            <span class="status-badge {{ loan['status'] }}">{{ loan['status'] }}</span>
         </div>
 
-        {% if equipment %}
-        <div class="equipment-section">
-            <h2>Equipment Borrowed</h2>
-            <div class="equipment-list">
-                <p><strong>Equipment Type</strong> | <strong>Quantity</strong></p>
-                {% for item in equipment %}
-                <p>{{ item['equipment_type'] }} | {{ item['quantity'] }}</p>
-                {% endfor %}
+        <div class="loan-grid">
+            <div class="info-card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle"></i>
+                    <h2>Primary Information</h2>
+                </div>
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="info-label">Loan ID</span>
+                        <span class="info-value">#{{ loan['id'] }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Borrower</span>
+                        <span class="info-value highlight">{{ loan['borrower_name'] }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Item Details</span>
+                        <span class="info-value">{{ loan['item_name'] }} ({{ loan['green_number'] }})</span>
+                    </div>
+                </div>
             </div>
-        </div>
-        {% endif %}
 
-        {% if loan['signature'] %}
-        <div class="signature-section">
-            <h2>Signature</h2>
-            <div class="signature-container-small">
-                <img src="{{ loan['signature'] }}" alt="Borrower's signature" class="signature-img-small">
+            <div class="info-card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt"></i>
+                    <h2>Timeline</h2>
+                </div>
+                <div class="card-content">
+                    <div class="info-row">
+                        <span class="info-label">Loan Date</span>
+                        <span class="info-value">{{ loan['loan_date'] }}</span>
+                    </div>
+                    {% if loan['return_date'] %}
+                    <div class="info-row">
+                        <span class="info-label">Return Date</span>
+                        <span class="info-value">{{ loan['return_date'] }}</span>
+                    </div>
+                    {% endif %}
+                    {% if loan['status'] == 'active' %}
+                    <div class="info-row">
+                        <span class="info-label">Days Active</span>
+                        <span class="info-value {% if days_active > 7 %}highlight-warning{% endif %}">
+                            {{ days_active }} days
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        {% endif %}
 
-        <div class="actions">
-            <a href="{{ url_for('back_to_previous') }}" class="button back">Go Back</a>
+            {% if equipment %}
+            <div class="info-card">
+                <div class="card-header">
+                    <i class="fas fa-tools"></i>
+                    <h2>Equipment</h2>
+                </div>
+                <div class="card-content">
+                    <div class="equipment-grid">
+                        {% for item in equipment %}
+                        <div class="equipment-item">
+                            <span class="equipment-name">{{ item['equipment_type'] }}</span>
+                            <span class="equipment-quantity">× {{ item['quantity'] }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if loan['signature'] %}
+            <div class="info-card signature-card">
+                <div class="card-header">
+                    <i class="fas fa-signature"></i>
+                    <h2>Signature</h2>
+                </div>
+                <div class="card-content">
+                    <img src="{{ loan['signature'] }}" alt="Borrower's signature" class="signature-image">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('back_to_previous') }}" class="btn btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
             {% if loan['status'] == 'active' %}
                 {% if days_active > 7 %}
-                <a href="{{ url_for('extend_loan', id=loan['id']) }}" class="button edit" onclick="return confirm('Extend this loan for one more week?')">Extend</a>
+                <a href="{{ url_for('extend_loan', id=loan['id']) }}" class="btn btn-extend" onclick="return confirm('Extend this loan for one more week?')">
+                    <i class="fas fa-clock"></i> Extend
+                </a>
                 {% endif %}
-                <a href="{{ url_for('return_loan', id=loan['id']) }}" class="button edit" onclick="return confirm('Mark this loan as returned?')">Return</a>
+                <a href="{{ url_for('return_loan', id=loan['id']) }}" class="btn btn-return" onclick="return confirm('Mark this loan as returned?')">
+                    <i class="fas fa-check"></i> Return
+                </a>
             {% endif %}
         </div>
     </div>

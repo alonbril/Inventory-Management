@@ -1011,3 +1011,211 @@ label[for="borrower_name"] {
     font-weight: 600;
     color: #333;
 }
+.loan-details-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 2rem auto;
+}
+
+.loan-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.loan-header h1 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.8rem;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #ebf8ff;
+    color: #2b6cb0;
+}
+
+.status-badge.returned {
+    background: #f0fff4;
+    color: #2f855a;
+}
+
+.loan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-header {
+    background: #f1f5f9;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #475569;
+}
+
+.card-content {
+    padding: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.info-value.highlight {
+    color: #2563eb;
+}
+
+.info-value.highlight-warning {
+    color: #d97706;
+}
+
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.equipment-item {
+    background: white;
+    padding: 0.75rem;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.equipment-name {
+    color: #475569;
+    font-weight: 500;
+}
+
+.equipment-quantity {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.signature-card .card-content {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.signature-image {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    background: white;
+    padding: 0.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #f0f0f0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.btn-back {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.btn-back:hover {
+    background: #e2e8f0;
+}
+
+.btn-extend {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.btn-extend:hover {
+    background: #dbeafe;
+}
+
+.btn-return {
+    background: #f0fff4;
+    color: #059669;
+}
+
+.btn-return:hover {
+    background: #dcfce7;
+}
+
+@media (max-width: 768px) {
+    .loan-details-card {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .loan-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
