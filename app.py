@@ -669,6 +669,100 @@ def sync_inventory():
         flash('Error synchronizing inventory status!', 'error')
     return redirect(url_for('index'))
 
+
+@app.route('/toner')
+def toner_management():
+    db = get_db()
+    cursor = db.cursor()
+
+    # Get search query from URL parameters
+    search_query = request.args.get('search', '').strip()
+
+    if search_query:
+        cursor.execute('''
+            SELECT * FROM toner_inventory 
+            WHERE name LIKE ? 
+            OR printer LIKE ? 
+            OR color LIKE ?
+            ORDER BY id DESC
+        ''', (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
+    else:
+        cursor.execute('SELECT * FROM toner_inventory ORDER BY id DESC')
+
+    toners = cursor.fetchall()
+    return render_template('toner.html', toners=toners, search_query=search_query)
+
+
+@app.route('/add_toner', methods=['GET', 'POST'])
+def add_toner():
+    if request.method == 'POST':
+        try:
+            name = request.form['name']
+            printer = request.form['printer']
+            bk_toner = request.form['bk_toner']
+            color = request.form['color']
+            inventory = int(request.form['inventory'])
+
+            db = get_db()
+            cursor = db.cursor()
+            cursor.execute(
+                'INSERT INTO toner_inventory (name, printer, bk_toner, color, inventory) VALUES (?, ?, ?, ?, ?)',
+                (name, printer, bk_toner, color, inventory)
+            )
+            db.commit()
+            flash('Toner added successfully!', 'success')
+        except Exception as e:
+            flash(f'Error adding toner: {str(e)}', 'error')
+            db.rollback()
+        return redirect(url_for('toner_management'))
+
+    return render_template('add_toner.html')
+
+
+@app.route('/edit_toner/<int:id>', methods=['GET', 'POST'])
+def edit_toner(id):
+    db = get_db()
+    cursor = db.cursor()
+
+    if request.method == 'POST':
+        try:
+            name = request.form['name']
+            printer = request.form['printer']
+            bk_toner = request.form['bk_toner']
+            color = request.form['color']
+            inventory = int(request.form['inventory'])
+
+            cursor.execute('''
+                UPDATE toner_inventory 
+                SET name = ?, printer = ?, bk_toner = ?, color = ?, inventory = ?
+                WHERE id = ?
+            ''', (name, printer, bk_toner, color, inventory, id))
+            db.commit()
+            flash('Toner updated successfully!', 'success')
+            return redirect(url_for('toner_management'))
+        except Exception as e:
+            flash(f'Error updating toner: {str(e)}', 'error')
+            db.rollback()
+
+    cursor.execute('SELECT * FROM toner_inventory WHERE id = ?', (id,))
+    toner = cursor.fetchone()
+    return render_template('edit_toner.html', toner=toner)
+
+
+@app.route('/delete_toner/<int:id>')
+def delete_toner(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('DELETE FROM toner_inventory WHERE id = ?', (id,))
+        db.commit()
+        flash('Toner deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting toner: {str(e)}', 'error')
+        db.rollback()
+    return redirect(url_for('toner_management'))
+
+
 DATABASE = get_db_path()
 
 if __name__ == '__main__':

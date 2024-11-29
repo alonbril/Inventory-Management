@@ -1,0 +1,66 @@
+<!-- toner.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Toner Management</h1>
+
+<div class="search-container">
+    <form class="search-form" action="{{ url_for('toner_management') }}" method="get">
+        <div class="search-input-wrapper">
+            <input type="text" name="search" class="search-input" placeholder="Search toners..." value="{{ search_query }}">
+            {% if search_query %}
+            <button type="button" class="clear-search" onclick="window.location='{{ url_for('toner_management') }}'">×</button>
+            {% endif %}
+        </div>
+        <button type="submit" class="button search-btn">Search</button>
+        {% if search_query %}
+        <a href="{{ url_for('toner_management') }}" class="button cancel">Clear All</a>
+        {% endif %}
+    </form>
+</div>
+
+<div class="actions">
+    <a href="{{ url_for('add_toner') }}" class="button add">Add New Toner</a>
+</div>
+
+{% if toners %}
+<div class="table-container inventory-table">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Printer</th>
+                <th>BK Toner</th>
+                <th>Color</th>
+                <th>Inventory</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for toner in toners %}
+            <tr>
+                <td>{{ toner['id'] }}</td>
+                <td>{{ toner['name'] }}</td>
+                <td>{{ toner['printer'] }}</td>
+                <td>{{ toner['bk_toner'] }}</td>
+                <td>{{ toner['color'] }}</td>
+                <td>{{ toner['inventory'] }}</td>
+                <td class="actions-cell">
+                    <a href="{{ url_for('edit_toner', id=toner['id']) }}" class="button edit">Edit</a>
+                    <a href="{{ url_for('delete_toner', id=toner['id']) }}" class="button delete" onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+{% if search_query %}
+<p>No toners found matching your search.</p>
+{% else %}
+<p>No toners in inventory.</p>
+{% endif %}
+{% endif %}
+
+{% endblock %}

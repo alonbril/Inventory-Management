@@ -63,10 +63,22 @@ def create_tables(connection):
             FOREIGN KEY (loan_id) REFERENCES loans (id)
         );
 
+        -- Create toner_inventory table
+        CREATE TABLE IF NOT EXISTS toner_inventory (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            printer TEXT NOT NULL,
+            bk_toner TEXT NOT NULL,
+            color TEXT NOT NULL,
+            inventory INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         -- Create indices for better performance
         CREATE INDEX IF NOT EXISTS idx_inventory_green_number ON inventory(green_number);
         CREATE INDEX IF NOT EXISTS idx_loans_green_number ON loans(green_number);
         CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);
+        CREATE INDEX IF NOT EXISTS idx_toner_printer ON toner_inventory(printer);
     ''')
 
     connection.commit()
@@ -118,7 +130,7 @@ def verify_database_structure():
         cursor = db.cursor()
 
         # Check each table
-        required_tables = ['inventory', 'loans', 'loans_equipment']
+        required_tables = ['inventory', 'loans', 'loans_equipment', 'toner_inventory']
         for table in required_tables:
             cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table,))
             if not cursor.fetchone():
