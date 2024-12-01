@@ -9,67 +9,124 @@
 </div>
 
 {% if loans %}
-<div class="table-container loans-table">
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Green Number</th>
-                <th>Item Name</th>
-                <th>Borrower</th>
-                <th>Loan Date</th>
-                <th>Status</th>
-                <th>Days Active</th>
-                <th>Signature</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for loan in loans %}
-            <tr class="clickable-row" onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
-                <td>{{ loan['id'] }}</td>
-                <td>{{ loan['green_number'] }}</td>
-                <td>{{ loan['item_name'] }}</td>
-                <td>{{ loan['borrower_name'] }}</td>
-                <td>{{ loan['loan_date'] }}</td>
-                <td>{{ loan['status'] }}</td>
-                <td>{{ loan['days_active'] }} days</td>
-                <td>
-                    {% if loan['signature'] %}
-                        <img src="{{ loan['signature'] }}" alt="Signature" style="max-height: 35px;">
-                    {% else %}
-                        No signature
-                    {% endif %}
-                </td>
-                <td class="actions-cell">
-                    {% if loan['status'] == 'active' %}
-                        {% if loan['days_active'] > 7 %}
-                            <a href="{{ url_for('extend_loan', id=loan['id']) }}" class="button edit"
-                               onclick="event.stopPropagation(); return confirm('Extend this loan for one more week?')">Extend</a>
-                        {% endif %}
-                        <a href="{{ url_for('return_loan', id=loan['id']) }}" class="button edit"
-                           onclick="event.stopPropagation(); return confirm('Mark this loan as returned?')">Return</a>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-<p>No active loans.</p>
-{% endif %}
-{% endblock %}
+<form id="bulkReturnForm" method="POST" action="{{ url_for('bulk_return') }}">
+    <div class="bulk-actions" style="margin: 20px 0;">
+        <button type="submit" class="button edit" id="bulkReturnBtn" style="display: none;">
+            Return Selected Items
+        </button>
+    </div>
 
-{% block scripts %}
+    <div class="table-container loans-table">
+        <table>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll"></th>
+                    <th>ID</th>
+                    <th>Green Number</th>
+                    <th>Item Name</th>
+                    <th>Borrower</th>
+                    <th>Loan Date</th>
+                    <th>Status</th>
+                    <th>Days Active</th>
+                    <th>Signature</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr class="clickable-row {% if loan.is_overdue %}overdue{% endif %}"
+                    data-borrower="{{ loan.borrower_name }}"
+                    onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
+                    <td onclick="event.stopPropagation()">
+                        <input type="checkbox" name="loan_ids[]" value="{{ loan.id }}" class="loan-checkbox">
+                    </td>
+                    <td>{{ loan.id }}</td>
+                    <td>{{ loan.green_number }}</td>
+                    <td>{{ loan.item_name }}</td>
+                    <td>{{ loan.borrower_name }}</td>
+                    <td>{{ loan.loan_date }}</td>
+                    <td>{{ loan.status }}</td>
+                    <td>{{ loan.days_active }} days</td>
+                    <td>
+                        {% if loan.signature %}
+                        <img src="{{ loan.signature }}" style="max-height: 35px;">
+                        {% else %}
+                        No signature
+                        {% endif %}
+                    </td>
+                    <td class="actions-cell" onclick="event.stopPropagation()">
+                        {% if loan.status == 'active' %}
+                            {% if loan.days_active > 7 %}
+                            <a href="{{ url_for('extend_loan', id=loan.id) }}" class="button edit"
+                               onclick="event.stopPropagation(); return confirm('Extend this loan for one more week?')">Extend</a>
+                            {% endif %}
+                            <a href="{{ url_for('return_loan', id=loan.id) }}" class="button edit"
+                               onclick="event.stopPropagation(); return confirm('Mark this loan as returned?')">Return</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</form>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Prevent action buttons from triggering row click
-    document.querySelectorAll('.actions .button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
+    const selectAll = document.getElementById('selectAll');
+    const loanCheckboxes = document.querySelectorAll('.loan-checkbox');
+    const bulkReturnBtn = document.getElementById('bulkReturnBtn');
+
+    // Function to update bulk return button visibility
+    function updateBulkReturnButton() {
+        const checkedBoxes = document.querySelectorAll('.loan-checkbox:checked');
+        bulkReturnBtn.style.display = checkedBoxes.length > 0 ? 'inline-block' : 'none';
+    }
+
+    // Select all functionality
+    selectAll.addEventListener('change', function() {
+        loanCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectAll.checked;
         });
+        updateBulkReturnButton();
+    });
+
+    // Individual checkbox changes
+    loanCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function(e) {
+            e.stopPropagation(); // Prevent row click when clicking checkbox
+
+            // Check if all boxes are checked
+            const allChecked = Array.from(loanCheckboxes).every(box => box.checked);
+            selectAll.checked = allChecked;
+
+            // Auto-select all loans from same borrower if this is the first selection
+            const checkedBoxes = document.querySelectorAll('.loan-checkbox:checked');
+            if (checkedBoxes.length === 1 && checkbox.checked) {
+                const borrower = checkbox.closest('tr').dataset.borrower;
+                loanCheckboxes.forEach(box => {
+                    if (box.closest('tr').dataset.borrower === borrower) {
+                        box.checked = true;
+                    }
+                });
+            }
+
+            updateBulkReturnButton();
+        });
+    });
+
+    // Confirm before bulk return
+    document.getElementById('bulkReturnForm').addEventListener('submit', function(e) {
+        const checkedCount = document.querySelectorAll('.loan-checkbox:checked').length;
+        if (!confirm(`Are you sure you want to return ${checkedCount} items?`)) {
+            e.preventDefault();
+        }
     });
 });
 </script>
+
+{% else %}
+<p>No active loans.</p>
+{% endif %}
+
 {% endblock %}

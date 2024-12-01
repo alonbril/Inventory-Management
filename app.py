@@ -922,6 +922,79 @@ def delete_cart_template(id):
     return redirect(url_for('cart_templates'))
 
 
+# Add these new routes to your app.py
+
+@app.route('/bulk_return', methods=['POST'])
+def bulk_return():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        loan_ids = request.form.getlist('loan_ids[]')
+
+        # Start transaction
+        cursor.execute('BEGIN TRANSACTION')
+
+        for loan_id in loan_ids:
+            # Get the green number before updating the loan
+            cursor.execute('SELECT green_number FROM loans WHERE id = ?', (loan_id,))
+            loan = cursor.fetchone()
+
+            if loan:
+                # Update loan status to returned
+                cursor.execute('''
+                    UPDATE loans 
+                    SET status = 'returned', return_date = ?
+                    WHERE id = ?
+                ''', (date.today().isoformat(), loan_id))
+
+                # Check if this item has any other active loans
+                cursor.execute('''
+                    SELECT COUNT(*) as active_count 
+                    FROM loans 
+                    WHERE green_number = ? AND status = 'active' AND id != ?
+                ''', (loan['green_number'], loan_id))
+
+                active_count = cursor.fetchone()['active_count']
+
+                # If no other active loans, update inventory status to 'no'
+                if active_count == 0:
+                    cursor.execute('''
+                        UPDATE inventory 
+                        SET status = 'no'
+                        WHERE green_number = ?
+                    ''', (loan['green_number'],))
+
+        # Commit transaction
+        db.commit()
+        flash('Selected loans have been returned successfully!', 'success')
+
+    except Exception as e:
+        cursor.execute('ROLLBACK')
+        flash(f'Error returning loans: {str(e)}', 'error')
+
+    return redirect(url_for('loans'))
+
+
+@app.route('/get_borrower_loans/<borrower_name>')
+def get_borrower_loans(borrower_name):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute('''
+            SELECT id, green_number, item_name 
+            FROM loans 
+            WHERE borrower_name = ? AND status = 'active'
+            ORDER BY loan_date DESC
+        ''', (borrower_name,))
+
+        loans = cursor.fetchall()
+        return jsonify([dict(loan) for loan in loans])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 DATABASE = get_db_path()
 
 if __name__ == '__main__':
