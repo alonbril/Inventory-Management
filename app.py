@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, g, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, flash, g, session, send_from_directory, jsonify
 from database import init_db, get_db, close_db, get_db_path, verify_database_structure
 from datetime import datetime, date, timedelta
 import pandas as pd
@@ -200,34 +200,36 @@ def loans():
 
 @app.route('/add_loan', methods=['GET', 'POST'])
 def add_loan():
-    if request.method == 'POST':
-        try:
-            db = get_db()
-            cursor = db.cursor()
+    try:
+        db = get_db()
+        cursor = db.cursor()
 
-            borrower_name = request.form['borrower_name']
-            green_numbers = request.form.getlist('green_numbers[]')
-            equipment = request.form.getlist('equipment[]')
-            equipment_quantities = request.form.getlist('equipment_quantity[]')
-            loan_date = request.form['loan_date']
-            signature = request.form.get('signature', '')
-
-            if not signature:
-                flash('Signature is required!', 'error')
-                return render_template('add_loan.html',
-                                       form_data=request.form,
-                                       available_items=get_available_items())
-
-            if not green_numbers or not any(green_numbers):
-                flash('Please select at least one item!', 'error')
-                return render_template('add_loan.html',
-                                       form_data=request.form,
-                                       available_items=get_available_items())
-
-            # Start a transaction
-            cursor.execute('BEGIN TRANSACTION')
-
+        if request.method == 'POST':
             try:
+                borrower_name = request.form['borrower_name']
+                green_numbers = request.form.getlist('green_numbers[]')
+                equipment = request.form.getlist('equipment[]')
+                equipment_quantities = request.form.getlist('equipment_quantity[]')
+                loan_date = request.form['loan_date']
+                signature = request.form.get('signature', '')
+
+                if not signature:
+                    flash('Signature is required!', 'error')
+                    return render_template('add_loan.html',
+                                         form_data=request.form,
+                                         available_items=get_available_items(),
+                                         cart_templates=get_cart_templates())
+
+                if not green_numbers or not any(green_numbers):
+                    flash('Please select at least one item!', 'error')
+                    return render_template('add_loan.html',
+                                         form_data=request.form,
+                                         available_items=get_available_items(),
+                                         cart_templates=get_cart_templates())
+
+                # Start a transaction
+                cursor.execute('BEGIN TRANSACTION')
+
                 # Process each green number as a separate loan
                 for green_number in green_numbers:
                     if not green_number:  # Skip empty selections
@@ -283,16 +285,27 @@ def add_loan():
             except Exception as e:
                 # If anything goes wrong, rollback the transaction
                 cursor.execute('ROLLBACK')
-                raise e
+                flash(f'Error adding loan: {str(e)}', 'error')
+                return render_template('add_loan.html',
+                                     form_data=request.form,
+                                     available_items=get_available_items(),
+                                     cart_templates=get_cart_templates())
 
-        except Exception as e:
-            flash(f'Error adding loan: {str(e)}', 'error')
-            return render_template('add_loan.html',
-                                   form_data=request.form,
-                                   available_items=get_available_items())
+        # For GET requests
+        return render_template('add_loan.html',
+                             available_items=get_available_items(),
+                             cart_templates=get_cart_templates())
 
-    return render_template('add_loan.html',
-                           available_items=get_available_items())
+    except Exception as e:
+        flash(f'Error: {str(e)}', 'error')
+        return redirect(url_for('loans'))
+
+# Add this helper function if not already present
+def get_cart_templates():
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute('SELECT id, name FROM cart_templates ORDER BY name')
+    return cursor.fetchall()
 
 # Add this helper function to get available items
 def get_available_items():
@@ -368,6 +381,26 @@ def return_loan(id):
         flash(f'Error updating loan: {str(e)}', 'error')
         db.rollback()
     return redirect(url_for('loans'))
+
+
+@app.route('/get_template_items/<int:template_id>')
+def get_template_items(template_id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        # Get all items for the template
+        cursor.execute('''
+            SELECT cti.green_number, i.name 
+            FROM cart_template_items cti 
+            JOIN inventory i ON cti.green_number = i.green_number 
+            WHERE cti.template_id = ?
+        ''', (template_id,))
+
+        items = cursor.fetchall()
+        return jsonify([dict(item) for item in items])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/delete/<int:id>')
 def delete_item(id):
@@ -763,6 +796,130 @@ def delete_toner(id):
         flash(f'Error deleting toner: {str(e)}', 'error')
         db.rollback()
     return redirect(url_for('toner_management'))
+
+
+@app.route('/cart_templates')
+def cart_templates():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        cursor.execute('''
+            SELECT ct.*, COUNT(cti.id) as item_count 
+            FROM cart_templates ct 
+            LEFT JOIN cart_template_items cti ON ct.id = cti.template_id 
+            GROUP BY ct.id
+            ORDER BY ct.name
+        ''')
+        templates = cursor.fetchall()
+        return render_template('cart_templates.html', templates=templates)
+    except Exception as e:
+        flash(f'Error loading templates: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
+
+@app.route('/add_cart_template', methods=['GET', 'POST'])
+def add_cart_template():
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        if request.method == 'POST':
+            name = request.form['name']
+            green_numbers = request.form.getlist('green_numbers[]')
+
+            if not green_numbers:
+                flash('Please select at least one item for the template', 'error')
+                return redirect(url_for('add_cart_template'))
+
+            cursor.execute('INSERT INTO cart_templates (name) VALUES (?)', (name,))
+            template_id = cursor.lastrowid
+
+            for green_number in green_numbers:
+                cursor.execute('''
+                    INSERT INTO cart_template_items (template_id, green_number) 
+                    VALUES (?, ?)
+                ''', (template_id, green_number))
+
+            db.commit()
+            flash('Template created successfully!', 'success')
+            return redirect(url_for('cart_templates'))
+
+        # GET request - show form
+        cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+        inventory_items = cursor.fetchall()
+        return render_template('add_edit_cart_template.html',
+                               inventory_items=inventory_items,
+                               template=None,
+                               selected_items=[])
+
+    except Exception as e:
+        flash(f'Error creating template: {str(e)}', 'error')
+        return redirect(url_for('cart_templates'))
+
+
+@app.route('/edit_cart_template/<int:id>', methods=['GET', 'POST'])
+def edit_cart_template(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        if request.method == 'POST':
+            name = request.form['name']
+            green_numbers = request.form.getlist('green_numbers[]')
+
+            if not green_numbers:
+                flash('Please select at least one item for the template', 'error')
+                return redirect(url_for('edit_cart_template', id=id))
+
+            cursor.execute('UPDATE cart_templates SET name = ? WHERE id = ?', (name, id))
+            cursor.execute('DELETE FROM cart_template_items WHERE template_id = ?', (id,))
+
+            for green_number in green_numbers:
+                cursor.execute('''
+                    INSERT INTO cart_template_items (template_id, green_number) 
+                    VALUES (?, ?)
+                ''', (id, green_number))
+
+            db.commit()
+            flash('Template updated successfully!', 'success')
+            return redirect(url_for('cart_templates'))
+
+        # GET request - show form with existing data
+        cursor.execute('SELECT * FROM cart_templates WHERE id = ?', (id,))
+        template = cursor.fetchone()
+
+        if not template:
+            flash('Template not found', 'error')
+            return redirect(url_for('cart_templates'))
+
+        cursor.execute('SELECT green_number FROM cart_template_items WHERE template_id = ?', (id,))
+        selected_items = [item['green_number'] for item in cursor.fetchall()]
+
+        cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+        inventory_items = cursor.fetchall()
+
+        return render_template('add_edit_cart_template.html',
+                               template=template,
+                               inventory_items=inventory_items,
+                               selected_items=selected_items)
+
+    except Exception as e:
+        flash(f'Error editing template: {str(e)}', 'error')
+        return redirect(url_for('cart_templates'))
+
+
+@app.route('/delete_cart_template/<int:id>')
+def delete_cart_template(id):
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute('DELETE FROM cart_templates WHERE id = ?', (id,))
+        db.commit()
+        flash('Template deleted successfully!', 'success')
+    except Exception as e:
+        flash(f'Error deleting template: {str(e)}', 'error')
+    return redirect(url_for('cart_templates'))
 
 
 DATABASE = get_db_path()

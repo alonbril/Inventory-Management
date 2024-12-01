@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<h1>{% if template %}Edit{% else %}Create New{% endif %} Cart Template</h1>
+
+<form method="POST" class="loan-form">
+    <div class="form-group">
+        <label for="template_name">Template Name:</label>
+        <input type="text" id="template_name" name="name"
+               value="{{ template.name if template else '' }}" required
+               class="form-control" style="width: 100%; padding: 8px; margin-bottom: 20px;">
+    </div>
+
+    <div class="form-group">
+        <label>Select Items (Multiple):</label>
+        <select id="items_select" name="green_numbers[]" multiple class="searchable-select"
+                style="width: 100%; margin-bottom: 20px;" required>
+            {% for item in inventory_items %}
+                <option value="{{ item.green_number }}"
+                        {% if template and item.green_number in selected_items %}selected{% endif %}>
+                    {{ item.green_number }} - {{ item.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div id="selected-items-preview" class="preview-container" style="margin-bottom: 20px;">
+        <h3>Selected Items:</h3>
+        <ul id="selected-items-list" class="preview-list"></ul>
+    </div>
+
+    <div class="form-buttons">
+        <button type="submit" class="button add">
+            {% if template %}Update{% else %}Create{% endif %} Template
+        </button>
+        <a href="{{ url_for('cart_templates') }}" class="button cancel">Cancel</a>
+    </div>
+</form>
+
+<script>
+$(document).ready(function() {
+    $('.searchable-select').select2({
+        width: '100%',
+        placeholder: 'Search and select items...',
+        allowClear: true
+    }).on('change', function() {
+        updateSelectedItemsPreview();
+    });
+
+    function updateSelectedItemsPreview() {
+        const preview = document.getElementById('selected-items-preview');
+        const list = document.getElementById('selected-items-list');
+        const select = document.getElementById('items_select');
+        const selectedOptions = Array.from(select.selectedOptions);
+
+        list.innerHTML = '';
+
+        if (selectedOptions.length > 0) {
+            selectedOptions.forEach(option => {
+                const li = document.createElement('li');
+                li.textContent = option.text;
+                list.appendChild(li);
+            });
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // Initial update of preview
+    updateSelectedItemsPreview();
+});
+</script>
+{% endblock %}

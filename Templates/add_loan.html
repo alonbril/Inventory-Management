@@ -11,6 +11,16 @@
             <input type="text" id="borrower_name" name="borrower_name" required value="{{ form_data.borrower_name if form_data else '' }}">
         </div>
 
+<!-- Cart Template Selection -->
+<div class="template-selection" style="margin-bottom: 20px;">
+    <label for="cart_template">Cart Templates:</label>
+    <select id="cart_template" class="searchable-select" style="width: 100%;">
+        <option value="">Select a template...</option>
+        {% for template in cart_templates %}
+        <option value="{{ template.id }}">{{ template.name }}</option>
+        {% endfor %}
+    </select>
+</div>
 
 <!-- Item Selection Container -->
 <div id="items-container">
@@ -79,13 +89,26 @@
     <script>
 // Initialize Select2 for existing select
 $(document).ready(function() {
-    // Initialize existing select
+    // Initialize all searchable selects
     $('.searchable-select').select2({
         width: '100%',
         placeholder: 'Search by green number or name...',
         allowClear: true
+    });
+
+    // Initialize cart template select
+    $('#cart_template').select2({
+        width: '100%',
+        placeholder: 'Select a template...',
+        allowClear: true
     }).on('change', function() {
-        // Update preview when select value changes
+        const templateId = $(this).val();
+        if (templateId) {
+            loadTemplateItems(templateId);
+        }
+    });
+
+    $('.item-select').on('change', function() {
         updateItemsPreview();
     });
 
@@ -120,7 +143,6 @@ $(document).ready(function() {
             placeholder: 'Search by green number or name...',
             allowClear: true
         }).on('change', function() {
-            // Update preview when select value changes
             updateItemsPreview();
         });
     });
@@ -136,6 +158,43 @@ $(document).ready(function() {
         updateItemsPreview();
     });
 });
+
+// Function to load template items
+function loadTemplateItems(templateId) {
+    fetch(`/get_template_items/${templateId}`)
+        .then(response => response.json())
+        .then(items => {
+            // Remove existing item rows except the first one
+            const itemRows = document.querySelectorAll('.item-row');
+            for (let i = 1; i < itemRows.length; i++) {
+                const select2Instance = $(itemRows[i]).find('.searchable-select').data('select2');
+                if (select2Instance) {
+                    select2Instance.destroy();
+                }
+                itemRows[i].remove();
+            }
+
+            // Clear first row's selection
+            const firstSelect = $('.item-row:first').find('select');
+            firstSelect.val(null).trigger('change');
+
+            // Add new items
+            items.forEach((item, index) => {
+                if (index === 0) {
+                    // Use the first existing row
+                    firstSelect.val(item.green_number).trigger('change');
+                } else {
+                    // Add new rows for additional items
+                    $('#add-item').click();
+                    const newSelect = $('.item-row:last').find('select');
+                    newSelect.val(item.green_number).trigger('change');
+                }
+            });
+            updateItemsPreview();
+        })
+        .catch(error => console.error('Error loading template items:', error));
+}
+
         // Initialize signature pad with proper scaling
         function initSignaturePad() {
             const canvas = document.getElementById('signaturePad');
@@ -173,10 +232,6 @@ $(document).ready(function() {
         document.getElementById('clearPad').addEventListener('click', function() {
             signaturePad.clear();
         });
-
-
-
-
 
         // Equipment handling
         const equipmentContainer = document.getElementById('equipment-container');

@@ -79,7 +79,28 @@ def create_tables(connection):
         CREATE INDEX IF NOT EXISTS idx_loans_green_number ON loans(green_number);
         CREATE INDEX IF NOT EXISTS idx_loans_status ON loans(status);
         CREATE INDEX IF NOT EXISTS idx_toner_printer ON toner_inventory(printer);
+        
+        -- Create cart_templates table
+        CREATE TABLE IF NOT EXISTS cart_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        -- Create cart_template_items table
+        CREATE TABLE IF NOT EXISTS cart_template_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            template_id INTEGER NOT NULL,
+            green_number INTEGER NOT NULL,
+            FOREIGN KEY (template_id) REFERENCES cart_templates (id) ON DELETE CASCADE,
+            UNIQUE(template_id, green_number)
+        );
+
+        -- Create indices for better performance
+        CREATE INDEX IF NOT EXISTS idx_template_items ON cart_template_items(template_id);
     ''')
+
+
 
     connection.commit()
 
