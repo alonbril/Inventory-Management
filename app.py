@@ -401,6 +401,8 @@ ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
 
 # Create uploads folder if it doesn't exist
 if not os.path.exists(UPLOAD_FOLDER):

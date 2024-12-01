@@ -7,8 +7,7 @@ import os
 
 class LicenseValidator:
     def __init__(self):
-        # Use the exact same key as in key_generator.py
-        self.secret_key = b'jJzteGTIlciymjoiAm-0oyJUrgAIT5gDesSq351l-1I='  # Make sure this matches your key_generator.py
+        self.secret_key = b'jJzteGTIlciymjoiAm-0oyJUrgAIT5gDesSq351l-1I='
         self.license_file = 'license.json'
 
     def validate_key(self, serial_key, company_name):
@@ -17,41 +16,38 @@ class LicenseValidator:
             if self._check_stored_license():
                 return True
 
-            print(f"Validating key for company: {company_name}")  # Debug print
-
-            # Generate expected data
-            current_date = datetime.datetime.now().strftime("%Y%m")
-            expected_data = f"{company_name}:{current_date}".encode()
-
             try:
                 # Create Fernet instance
                 fernet = Fernet(self.secret_key)
 
-                # Reconstruct full key (add padding)
-                while len(serial_key) % 4:
-                    serial_key += '='
+                # Decode the key
+                encrypted_data = base64.urlsafe_b64decode(serial_key)
+                decrypted_data = fernet.decrypt(encrypted_data)
 
-                print(f"Attempting to decrypt key: {serial_key}")  # Debug print
+                # Parse the JSON data
+                license_data = json.loads(decrypted_data.decode())
 
-                # Decrypt the key
-                decrypted_data = fernet.decrypt(base64.urlsafe_b64decode(serial_key))
-                print(f"Decrypted data: {decrypted_data}")  # Debug print
-                print(f"Expected data: {expected_data}")  # Debug print
-
-                if decrypted_data == expected_data:
-                    print("Key validated successfully!")  # Debug print
-                    self._store_license(serial_key, company_name)
-                    return True
-                else:
-                    print("Key validation failed - data mismatch")  # Debug print
+                # Verify company name
+                if license_data['company'] != company_name:
+                    print("Company name mismatch")
                     return False
 
+                # Check expiration
+                current_timestamp = int(datetime.datetime.now().timestamp())
+                if license_data['expires'] != -1 and current_timestamp > license_data['expires']:
+                    print("License expired")
+                    return False
+
+                # If we get here, the license is valid
+                self._store_license(serial_key, company_name)
+                return True
+
             except Exception as e:
-                print(f"Decryption error: {str(e)}")  # Debug print
+                print(f"Decryption error: {str(e)}")
                 return False
 
         except Exception as e:
-            print(f"Validation error: {str(e)}")  # Debug print
+            print(f"Validation error: {str(e)}")
             return False
 
     def _store_license(self, serial_key, company_name):
