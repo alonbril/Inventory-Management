@@ -179,19 +179,15 @@ def loans():
     # Get all active loans with calculated days active
     cursor.execute('''
         SELECT *, 
-        CAST(
-            (JULIANDAY('now') - JULIANDAY(loan_date)) AS INTEGER
-        ) as days_active 
+        CAST((JULIANDAY('now') - JULIANDAY(loan_date)) AS INTEGER) as days_active 
         FROM loans 
         WHERE status = 'active' 
-        ORDER BY id DESC
+        ORDER BY borrower_name, loan_date DESC
     ''')
-    loans = cursor.fetchall()
 
-    # Convert loans to a list to modify each row
-    loans = [dict(loan) for loan in loans]
+    loans = [dict(loan) for loan in cursor.fetchall()]
 
-    # Add overdue flag
+    # Add is_overdue flag to each loan
     for loan in loans:
         loan['is_overdue'] = loan['days_active'] > 7
 

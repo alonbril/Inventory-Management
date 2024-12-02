@@ -352,6 +352,29 @@ tr.overdue.clickable-row:hover::after {
 tr.overdue.clickable-row:hover td {
     color: inherit;
 }
+.clickable-row,
+.clickable-row:hover,
+.clickable-row::after,
+.clickable-row:hover::after {
+    content: none !important;
+    position: static !important;
+    display: table-row !important;
+}
+
+/* Simple hover effect */
+.clickable-row:hover td {
+    background-color: #f5f5f5;
+}
+
+.actions-cell {
+    width: 140px;
+    white-space: nowrap;
+}
+
+.actions-cell .button {
+    display: inline-block;
+    margin: 2px;
+}
 
 /* ==========================================================================
    Add Loan Form Styles
@@ -1306,4 +1329,56 @@ label[for="borrower_name"] {
     .selected-item button {
         width: 100%;
     }
+}
+
+.borrower-loans {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.borrower-loans th,
+.borrower-loans td {
+    padding: 12px 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background-clip: padding-box;
+}
+
+.clickable-row {
+    transition: background-color 0.2s ease;
+}
+
+.clickable-row:hover {
+    background-color: #f5f5f5;
+}
+
+.clickable-row:hover td {
+    background-color: transparent !important;
+}
+
+.actions-cell {
+    width: 140px !important;
+    white-space: nowrap;
+    position: relative;
+}
+
+.actions-cell .button {
+    display: inline-block;
+    margin: 2px;
+    white-space: nowrap;
+}
+
+/* Prevent any potential table expansion */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.borrower-section {
+    width: 100%;
+    overflow: hidden;
 }
