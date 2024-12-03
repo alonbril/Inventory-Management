@@ -67,51 +67,57 @@
 
 {% block scripts %}
 <script>
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const fileLabel = document.getElementById('fileLabel');
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileLabel = document.getElementById('fileLabel');
+    const browseText = document.querySelector('.browse-text');
+    const defaultText = 'Drop your Excel file here or <span class="browse-text">browse</span>';
 
-// Handle clicking the upload area
-uploadArea.addEventListener('click', (e) => {
-    if (e.target !== fileInput) {
+    // Remove all previous click handlers and use a single one
+    browseText.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         fileInput.click();
-    }
-});
+    });
 
-// Handle drag and drop
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-
-    if (e.dataTransfer.files.length) {
-        const file = e.dataTransfer.files[0];
-        if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
-            fileInput.files = e.dataTransfer.files;
-            updateFileName(file.name);
+    // Handle file selection
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) {
+            updateFileName(e.target.files[0].name);
         } else {
-            alert('Please select an Excel file (.xlsx or .xls)');
+            fileLabel.innerHTML = defaultText;
         }
+    });
+
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+
+        if (e.dataTransfer.files.length) {
+            const file = e.dataTransfer.files[0];
+            if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                fileInput.files = e.dataTransfer.files;
+                updateFileName(file.name);
+            } else {
+                alert('Please select an Excel file (.xlsx or .xls)');
+            }
+        }
+    });
+
+    function updateFileName(filename) {
+        fileLabel.innerHTML = `Selected file: ${filename}`;
     }
 });
-
-// Handle file selection
-fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length) {
-        updateFileName(e.target.files[0].name);
-    }
-});
-
-function updateFileName(filename) {
-    fileLabel.textContent = filename;
-}
 </script>
 {% endblock %}
