@@ -303,6 +303,39 @@ def get_cart_templates():
     cursor.execute('SELECT id, name FROM cart_templates ORDER BY name')
     return cursor.fetchall()
 
+
+def is_green_number_in_use(green_number, exclude_template_id=None):
+    """
+    Check if a green number is already used in any other template
+
+    Args:
+        green_number: The green number to check
+        exclude_template_id: Optional template ID to exclude from the check (used during editing)
+
+    Returns:
+        bool: True if the green number is already in use, False otherwise
+    """
+    db = get_db()
+    cursor = db.cursor()
+
+    if exclude_template_id is not None:
+        cursor.execute('''
+            SELECT COUNT(*) as count 
+            FROM cart_template_items cti 
+            JOIN cart_templates ct ON cti.template_id = ct.id 
+            WHERE cti.green_number = ? AND ct.id != ?
+        ''', (green_number, exclude_template_id))
+    else:
+        cursor.execute('''
+            SELECT COUNT(*) as count 
+            FROM cart_template_items 
+            WHERE green_number = ?
+        ''', (green_number,))
+
+    result = cursor.fetchone()
+    return result['count'] > 0
+
+
 # Add this helper function to get available items
 def get_available_items():
     db = get_db()
@@ -828,6 +861,23 @@ def add_cart_template():
                 flash('Please select at least one item for the template', 'error')
                 return redirect(url_for('add_cart_template'))
 
+            # Check for duplicate green numbers
+            duplicate_numbers = []
+            for green_number in green_numbers:
+                if is_green_number_in_use(green_number):
+                    cursor.execute('SELECT ct.name FROM cart_templates ct JOIN cart_template_items cti ON ct.id = cti.template_id WHERE cti.green_number = ?', (green_number,))
+                    template = cursor.fetchone()
+                    duplicate_numbers.append(f"Green number {green_number} is already in template '{template['name']}'")
+
+            if duplicate_numbers:
+                flash('Error: \n' + '\n'.join(duplicate_numbers), 'error')
+                cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+                inventory_items = cursor.fetchall()
+                return render_template('add_edit_cart_template.html',
+                                    inventory_items=inventory_items,
+                                    template=None,
+                                    selected_items=green_numbers)
+
             cursor.execute('INSERT INTO cart_templates (name) VALUES (?)', (name,))
             template_id = cursor.lastrowid
 
@@ -842,18 +892,26 @@ def add_cart_template():
             return redirect(url_for('cart_templates'))
 
         # GET request - show form
-        cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+        cursor.execute('''
+            SELECT i.green_number, i.name 
+            FROM inventory i 
+            WHERE NOT EXISTS (
+                SELECT 1 FROM cart_template_items cti 
+                WHERE cti.green_number = i.green_number
+            )
+            ORDER BY i.green_number
+        ''')
         inventory_items = cursor.fetchall()
         return render_template('add_edit_cart_template.html',
-                               inventory_items=inventory_items,
-                               template=None,
-                               selected_items=[])
+                            inventory_items=inventory_items,
+                            template=None,
+                            selected_items=[])
 
     except Exception as e:
         flash(f'Error creating template: {str(e)}', 'error')
         return redirect(url_for('cart_templates'))
 
-
+# Update the edit_cart_template route
 @app.route('/edit_cart_template/<int:id>', methods=['GET', 'POST'])
 def edit_cart_template(id):
     try:
@@ -867,6 +925,25 @@ def edit_cart_template(id):
             if not green_numbers:
                 flash('Please select at least one item for the template', 'error')
                 return redirect(url_for('edit_cart_template', id=id))
+
+            # Check for duplicate green numbers
+            duplicate_numbers = []
+            for green_number in green_numbers:
+                if is_green_number_in_use(green_number, exclude_template_id=id):
+                    cursor.execute('SELECT ct.name FROM cart_templates ct JOIN cart_template_items cti ON ct.id = cti.template_id WHERE cti.green_number = ?', (green_number,))
+                    template = cursor.fetchone()
+                    duplicate_numbers.append(f"Green number {green_number} is already in template '{template['name']}'")
+
+            if duplicate_numbers:
+                flash('Error: \n' + '\n'.join(duplicate_numbers), 'error')
+                cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+                inventory_items = cursor.fetchall()
+                cursor.execute('SELECT green_number FROM cart_template_items WHERE template_id = ?', (id,))
+                selected_items = [item['green_number'] for item in cursor.fetchall()]
+                return render_template('add_edit_cart_template.html',
+                                    template={'id': id, 'name': name},
+                                    inventory_items=inventory_items,
+                                    selected_items=green_numbers)
 
             cursor.execute('UPDATE cart_templates SET name = ? WHERE id = ?', (name, id))
             cursor.execute('DELETE FROM cart_template_items WHERE template_id = ?', (id,))
@@ -892,18 +969,27 @@ def edit_cart_template(id):
         cursor.execute('SELECT green_number FROM cart_template_items WHERE template_id = ?', (id,))
         selected_items = [item['green_number'] for item in cursor.fetchall()]
 
-        cursor.execute('SELECT green_number, name FROM inventory ORDER BY green_number')
+        # Get available items plus currently selected items
+        cursor.execute('''
+            SELECT i.green_number, i.name 
+            FROM inventory i 
+            WHERE NOT EXISTS (
+                SELECT 1 FROM cart_template_items cti 
+                WHERE cti.green_number = i.green_number 
+                AND cti.template_id != ?
+            )
+            ORDER BY i.green_number
+        ''', (id,))
         inventory_items = cursor.fetchall()
 
         return render_template('add_edit_cart_template.html',
-                               template=template,
-                               inventory_items=inventory_items,
-                               selected_items=selected_items)
+                            template=template,
+                            inventory_items=inventory_items,
+                            selected_items=selected_items)
 
     except Exception as e:
         flash(f'Error editing template: {str(e)}', 'error')
         return redirect(url_for('cart_templates'))
-
 
 @app.route('/delete_cart_template/<int:id>')
 def delete_cart_template(id):
