@@ -1,24 +1,30 @@
 {% extends "base.html" %}
-{% block content %}
+{% from 'pagination.html' import render_pagination %}
+{% from 'sorting.html' import render_sort_options %}
 
+{% block content %}
 <h1>Inventory Items</h1>
 
 <div class="search-container">
-    <form class="search-form" method="GET" action="{{ url_for('index') }}">
+    <form method="get" action="{{ url_for('index') }}" class="search-form">
         <div class="search-input-wrapper">
             <input type="text"
                    name="search"
                    class="search-input"
-                   placeholder="Search by name, green number, category, or status..."
+                   placeholder="Search..."
                    value="{{ search_query }}">
             {% if search_query %}
-            <button type="button" class="clear-search" onclick="clearSearch()">&times;</button>
+                <button type="button" class="clear-search" onclick="window.location.href='{{ url_for('index') }}'">×</button>
             {% endif %}
         </div>
         <button type="submit" class="button search-btn">Search</button>
         {% if search_query %}
-        <a href="{{ url_for('index') }}" class="button cancel">Clear All</a>
+            <a href="{{ url_for('index') }}" class="button cancel">Clear All</a>
         {% endif %}
+
+        <!-- Preserve sort parameters in search -->
+        <input type="hidden" name="sort_by" value="{{ sort_by }}">
+        <input type="hidden" name="sort_order" value="{{ sort_order }}">
     </form>
 </div>
 
@@ -27,44 +33,49 @@
     <a href="{{ url_for('import_inventory') }}" class="button import">Import from Excel</a>
 </div>
 
+{{ render_sort_options(sort_by, sort_order) }}
+
 {% if items %}
-<div class="table-container inventory-table">
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Green#</th>
-                <th>Qty</th>
-                <th>Category</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>{{ item['id'] }}</td>
-                <td>{{ item['name'] }}</td>
-                <td>{{ item['green_number'] }}</td>
-                <td>{{ item['quantity'] }}</td>
-                <td>{{ item['category'] }}</td>
-                <td>{{ item['status'] }}</td>
-                <td class="actions-cell">
-                    <a href="{{ url_for('edit_item', id=item['id']) }}" class="button edit">Edit</a>
-                    <a href="{{ url_for('delete_item', id=item['id']) }}" class="button delete"
-                       onclick="return confirm('Are you sure?')">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <div class="table-container inventory-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Green#</th>
+                    <th>Qty</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr {% if item.is_overdue %}class="overdue"{% endif %}>
+                        <td>{{ item['id'] }}</td>
+                        <td>{{ item['name'] }}</td>
+                        <td>{{ item['green_number'] }}</td>
+                        <td>{{ item['quantity'] }}</td>
+                        <td>{{ item['category'] }}</td>
+                        <td>{{ item['status'] }}</td>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('edit_item', id=item['id']) }}" class="button edit">Edit</a>
+                            <a href="{{ url_for('delete_item', id=item['id']) }}"
+                               class="button delete"
+                               onclick="return confirm('Are you sure?')">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {{ render_pagination(current_page, total_pages, sort_by, sort_order) }}
 {% else %}
     {% if search_query %}
-         <p class="no-results">No items found matching your search.</p>
+        <p>No items found matching your search.</p>
     {% else %}
-        <p class="no-results">No items in inventory.</p>
+        <p>No items in inventory.</p>
     {% endif %}
 {% endif %}
 {% endblock %}
@@ -89,5 +100,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+    function updateSort(value) {
+    const [sortBy, sortOrder] = value.split('-');
+    const currentUrl = new URL(window.location.href);
+    const params = currentUrl.searchParams;
+
+    params.set('sort_by', sortBy);
+    params.set('sort_order', sortOrder);
+    params.set('page', '1'); // Reset to first page when sorting changes
+
+    window.location.href = currentUrl.toString();
+}
+
+// Helper function for updating URLs (add to your Jinja2 environment)
+function update_url(page, sort_by, sort_order) {
+    const currentUrl = new URL(window.location.href);
+    const params = currentUrl.searchParams;
+
+    if (page) params.set('page', page);
+    if (sort_by) params.set('sort_by', sort_by);
+    if (sort_order) params.set('sort_order', sort_order);
+
+    return currentUrl.toString();
+}
+    document.addEventListener('DOMContentLoaded', function() {
+        const clearButton = document.querySelector('.clear-search');
+        if (clearButton) {
+            clearButton.addEventListener('click', function() {
+                window.location.href = '{{ url_for('index') }}';
+            });
+        }
+    });
 </script>
 {% endblock %}

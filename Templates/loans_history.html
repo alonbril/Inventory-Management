@@ -1,4 +1,8 @@
+{# templates/loans_history.html #}
 {% extends "base.html" %}
+{% from 'pagination.html' import render_pagination %}
+{% from 'sorting.html' import render_sort_options %}
+
 {% block content %}
 <h1>Loans History</h1>
 
@@ -6,45 +10,49 @@
     <a href="{{ url_for('loans') }}" class="button back">Back to Active Loans</a>
 </div>
 
+{{ render_sort_options(sort_by, sort_order) }}
+
 {% if loans %}
-<div class="table-container">
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Green Number</th>
-                <th>Item Name</th>
-                <th>Borrower</th>
-                <th>Loan Date</th>
-                <th>Return Date</th>
-                <th>Status</th>
-                <th>Signature</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for loan in loans %}
-            <tr class="clickable-row" onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
-                <td>{{ loan['id'] }}</td>
-                <td>{{ loan['green_number'] }}</td>
-                <td>{{ loan['item_name'] }}</td>
-                <td>{{ loan['borrower_name'] }}</td>
-                <td>{{ loan['loan_date'] }}</td>
-                <td>{{ loan['return_date'] or '-' }}</td>
-                <td>{{ loan['status'] }}</td>
-                <td>
-                    {% if loan['signature'] %}
-                        <img src="{{ loan['signature'] }}" style="max-height: 50px;" alt="Signature">
-                    {% else %}
-                        No signature
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Green Number</th>
+                    <th>Item Name</th>
+                    <th>Borrower</th>
+                    <th>Loan Date</th>
+                    <th>Return Date</th>
+                    <th>Status</th>
+                    <th>Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan['id'] }}</td>
+                        <td>{{ loan['green_number'] }}</td>
+                        <td>{{ loan['item_name'] }}</td>
+                        <td>{{ loan['borrower_name'] }}</td>
+                        <td>{{ loan['loan_date'] }}</td>
+                        <td>{{ loan['return_date'] or '-' }}</td>
+                        <td>{{ loan['status'] }}</td>
+                        <td>
+                            {% if loan['signature'] %}
+                                <img src="{{ loan['signature'] }}" style="max-height: 50px;" alt="Signature">
+                            {% else %}
+                                No signature
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {{ render_pagination(current_page, total_pages, sort_by, sort_order) }}
 {% else %}
-<p>No loan history available.</p>
+    <p>No loan history available.</p>
 {% endif %}
 {% endblock %}
 
@@ -57,5 +65,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+    function updateSort(value) {
+    const [sortBy, sortOrder] = value.split('-');
+    const currentUrl = new URL(window.location.href);
+    const params = currentUrl.searchParams;
+
+    params.set('sort_by', sortBy);
+    params.set('sort_order', sortOrder);
+    params.set('page', '1'); // Reset to first page when sorting changes
+
+    window.location.href = currentUrl.toString();
+}
+
+// Helper function for updating URLs (add to your Jinja2 environment)
+function update_url(page, sort_by, sort_order) {
+    const currentUrl = new URL(window.location.href);
+    const params = currentUrl.searchParams;
+
+    if (page) params.set('page', page);
+    if (sort_by) params.set('sort_by', sort_by);
+    if (sort_order) params.set('sort_order', sort_order);
+
+    return currentUrl.toString();
+}
 </script>
 {% endblock %}

@@ -10,6 +10,7 @@ import os
 import sys
 import logging
 
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -45,6 +46,44 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 # Ensure upload folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
+def get_pagination_params():
+    """Get pagination parameters from request"""
+    page = request.args.get('page', 1, type=int)
+    per_page = 50
+    offset = (page - 1) * per_page
+    return page, per_page, offset
+
+
+def get_sort_params():
+    """Get sorting parameters from request"""
+    sort_by = request.args.get('sort_by', 'id')
+    sort_order = request.args.get('sort_order', 'desc')
+
+    # Validate sort parameters
+    allowed_sort_fields = {
+        'id': 'id',
+        'green_number': 'green_number',
+        'date': 'created_at'  # for inventory items
+    }
+
+    if sort_by not in allowed_sort_fields:
+        sort_by = 'id'
+
+    sort_field = allowed_sort_fields[sort_by]
+    sort_direction = 'DESC' if sort_order == 'desc' else 'ASC'
+
+    return sort_field, sort_direction
+
+@app.template_filter('max')
+def max_filter(a, b):
+    return max(a, b)
+
+@app.template_filter('min')
+def min_filter(a, b):
+    return min(a, b)
+
+
 # Error handling
 @app.errorhandler(Exception)
 def handle_error(e):
@@ -79,6 +118,10 @@ def index():
     db = get_db()
     cursor = db.cursor()
 
+    # Get pagination and sorting parameters
+    page, per_page, offset = get_pagination_params()
+    sort_field, sort_direction = get_sort_params()
+
     # Get search query from URL parameters
     search_query = request.args.get('search', '').strip()
 
@@ -92,27 +135,60 @@ def index():
     overdue_items = cursor.fetchall()
     overdue_green_numbers = set(str(item['green_number']) for item in overdue_items)
 
-    # Get inventory items with search if provided
+    # Base query for counting total items
+    count_query = 'SELECT COUNT(*) as total FROM inventory'
+
+    # Base query for fetching items
+    item_query = '''
+        SELECT * FROM inventory
+        {where_clause}
+        ORDER BY {sort_field} {sort_direction}
+        LIMIT ? OFFSET ?
+    '''
+
+    # Add search conditions if search_query exists
+    where_clause = ''
+    query_params = []
+
     if search_query:
-        cursor.execute('''
-            SELECT * FROM inventory 
+        where_clause = '''
             WHERE name LIKE ? 
             OR green_number LIKE ? 
             OR category LIKE ?
             OR status LIKE ?
-            ORDER BY id DESC
-        ''', (f'%{search_query}%', f'%{search_query}%', f'%{search_query}%', f'%{search_query}%'))
-    else:
-        cursor.execute('SELECT * FROM inventory ORDER BY id DESC')
+        '''
+        query_params = [f'%{search_query}%'] * 4
 
-    # Fetch items and convert to list of dicts
+    # Get total count
+    if search_query:
+        cursor.execute(count_query + ' ' + where_clause, query_params)
+    else:
+        cursor.execute(count_query)
+
+    total_items = cursor.fetchone()['total']
+    total_pages = (total_items + per_page - 1) // per_page
+
+    # Get items for current page
+    query = item_query.format(
+        where_clause=where_clause,
+        sort_field=sort_field,
+        sort_direction=sort_direction
+    )
+
+    cursor.execute(query, query_params + [per_page, offset])
     items = [dict(row) for row in cursor.fetchall()]
 
     # Add is_overdue flag to each item
     for item in items:
         item['is_overdue'] = str(item['green_number']) in overdue_green_numbers
 
-    return render_template('index.html', items=items, search_query=search_query)
+    return render_template('index.html',
+                           items=items,
+                           search_query=search_query,
+                           current_page=page,
+                           total_pages=total_pages,
+                           sort_by=request.args.get('sort_by', 'id'),
+                           sort_order=request.args.get('sort_order', 'desc'))
 
 
 @app.route('/add', methods=['GET', 'POST'])
@@ -444,17 +520,42 @@ def delete_item(id):
         db.rollback()
     return redirect(url_for('index'))
 
+
 @app.route('/loans_history')
 def loans_history():
     db = get_db()
     cursor = db.cursor()
+
+    # Get pagination and sorting parameters
+    page, per_page, offset = get_pagination_params()
+    sort_field, sort_direction = get_sort_params()
+
+    # Count total returned loans
+    cursor.execute('''
+        SELECT COUNT(*) as total 
+        FROM loans 
+        WHERE status = 'returned'
+    ''')
+    total_items = cursor.fetchone()['total']
+    total_pages = (total_items + per_page - 1) // per_page
+
+    # Get loans for current page
     cursor.execute('''
         SELECT * FROM loans 
         WHERE status = 'returned' 
-        ORDER BY return_date DESC
-    ''')
-    history_loans = cursor.fetchall()
-    return render_template('loans_history.html', loans=history_loans)
+        ORDER BY {} {}
+        LIMIT ? OFFSET ?
+    '''.format(sort_field, sort_direction), [per_page, offset])
+
+    loans = cursor.fetchall()
+
+    return render_template('loans_history.html',
+                           loans=loans,
+                           current_page=page,
+                           total_pages=total_pages,
+                           sort_by=request.args.get('sort_by', 'id'),
+                           sort_order=request.args.get('sort_order', 'desc'))
+
 
 
 UPLOAD_FOLDER = 'uploads'

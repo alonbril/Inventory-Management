@@ -1,0 +1,22 @@
+{% macro render_pagination(current_page, total_pages, sort_by, sort_order) %}
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if current_page > 1 %}
+            <a href="{{ url_for(request.endpoint, page=current_page-1, sort_by=sort_by, sort_order=sort_order) }}"
+               class="pagination-link">&laquo; Previous</a>
+        {% endif %}
+
+        {% for p in range(1|max(current_page-2), (total_pages + 1)|min(current_page+3)) %}
+            <a href="{{ url_for(request.endpoint, page=p, sort_by=sort_by, sort_order=sort_order) }}"
+               class="pagination-link {% if p == current_page %}active{% endif %}">
+                {{ p }}
+            </a>
+        {% endfor %}
+
+        {% if current_page < total_pages %}
+            <a href="{{ url_for(request.endpoint, page=current_page+1, sort_by=sort_by, sort_order=sort_order) }}"
+               class="pagination-link">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endmacro %}

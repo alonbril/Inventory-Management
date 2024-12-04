@@ -1,0 +1,11 @@
+{% macro render_sort_options(sort_by, sort_order) %}
+<div class="sort-options">
+    <label for="sort-select">Sort by:</label>
+    <select id="sort-select" onchange="updateSort(this.value)">
+        <option value="id-desc" {% if sort_by=='id' and sort_order=='desc' %}selected{% endif %}>Newest First</option>
+        <option value="id-asc" {% if sort_by=='id' and sort_order=='asc' %}selected{% endif %}>Oldest First</option>
+        <option value="green_number-asc" {% if sort_by=='green_number' and sort_order=='asc' %}selected{% endif %}>Green Number (Ascending)</option>
+        <option value="green_number-desc" {% if sort_by=='green_number' and sort_order=='desc' %}selected{% endif %}>Green Number (Descending)</option>
+    </select>
+</div>
+{% endmacro %}
