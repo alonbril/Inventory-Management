@@ -1,4 +1,3 @@
-{# templates/loans_history.html #}
 {% extends "base.html" %}
 {% from 'pagination.html' import render_pagination %}
 {% from 'sorting.html' import render_sort_options %}
@@ -29,7 +28,7 @@
             </thead>
             <tbody>
                 {% for loan in loans %}
-                    <tr>
+                    <tr class="clickable-row" onclick="window.location='{{ url_for('loan_details', id=loan['id']) }}'">
                         <td>{{ loan['id'] }}</td>
                         <td>{{ loan['green_number'] }}</td>
                         <td>{{ loan['item_name'] }}</td>
@@ -59,25 +58,44 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle button clicks without triggering row click
     document.querySelectorAll('.actions .button').forEach(button => {
         button.addEventListener('click', function(e) {
             e.stopPropagation();
         });
     });
+
+    // Make rows clickable
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.style.cursor = 'pointer';
+        row.addEventListener('mouseover', function() {
+            this.style.backgroundColor = '#f5f5f5';
+        });
+        row.addEventListener('mouseout', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+
+    // Prevent signature image clicks from triggering row click
+    document.querySelectorAll('.clickable-row img').forEach(img => {
+        img.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    });
 });
-    function updateSort(value) {
+
+function updateSort(value) {
     const [sortBy, sortOrder] = value.split('-');
     const currentUrl = new URL(window.location.href);
     const params = currentUrl.searchParams;
 
     params.set('sort_by', sortBy);
     params.set('sort_order', sortOrder);
-    params.set('page', '1'); // Reset to first page when sorting changes
+    params.set('page', '1');
 
     window.location.href = currentUrl.toString();
 }
 
-// Helper function for updating URLs (add to your Jinja2 environment)
 function update_url(page, sort_by, sort_order) {
     const currentUrl = new URL(window.location.href);
     const params = currentUrl.searchParams;
