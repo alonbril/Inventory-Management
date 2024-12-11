@@ -1,3 +1,13 @@
+"""
+Inventory Management System
+Copyright (c) 2024 Alon Bril
+All rights reserved.
+
+This code is proprietary and confidential.
+Unauthorized copying, transfer, or use is strictly prohibited.
+Violators will be prosecuted to the full extent of the law.
+For licensing information, please contact: alonbril5@gmail.com
+"""
 from flask import Flask, render_template, request, redirect, url_for, flash, g, session, send_from_directory, jsonify
 from database import init_db, get_db, close_db, get_db_path, verify_database_structure
 from datetime import datetime, date, timedelta
@@ -33,6 +43,9 @@ app = Flask(__name__,
             static_folder=resource_path('static'))
 
 app.secret_key = 'dev'
+@app.context_processor
+def inject_year():
+    return {'now': datetime.now()}
 
 # Configure upload folder
 UPLOAD_FOLDER = resource_path('uploads')
