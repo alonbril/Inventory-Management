@@ -1464,3 +1464,60 @@ label[for="borrower_name"] {
         width: 100%;
     }
 }
+.navbar {
+    background-color: #333;
+    padding: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+}
+
+.nav-links a:hover {
+    background-color: #555;
+}
+
+.copyright {
+    color: #ccc;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-links {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .copyright {
+        text-align: center;
+        width: 100%;
+    }
+}

@@ -26,14 +26,14 @@
                 </div>
                 {% endif %}
                 <div class="borrower-section">
-                    <div class="borrower-header" onclick="toggleBorrower('{{loan.borrower_name}}')">
-                        <span class="borrower-name">{{ loan.borrower_name }}</span>
-                        <span class="toggle-icon" id="toggle-{{ loan.borrower_name|replace(' ', '-') }}">▼</span>
-                    </div>
-                    <table class="borrower-loans" id="loans-{{ loan.borrower_name|replace(' ', '-') }}" style="display: none;">
+                <div class="borrower-header" onclick="toggleBorrower('{{loan.borrower_name}}')">
+                    <span class="borrower-name">{{ loan.borrower_name }}</span>
+                    <span class="toggle-icon" id="toggle-{{ loan.borrower_name|replace(' ', '-') }}">▼</span>
+                </div>
+                <table class="borrower-loans" id="loans-{{ loan.borrower_name|replace(' ', '-') }}" style="display: none;">
                         <thead>
                             <tr>
-                                <th style="width: 40px;"><input type="checkbox" class="select-all-borrower" data-borrower="{{ loan.borrower_name }}"></th>
+                                <th style="width: 40px;"><input type="checkbox" class="select-all-borrower" data-borrower="{{ loan.borrower_name|replace(' ', '-') }}">
                                 <th style="width: 60px;">ID</th>
                                 <th style="width: 100px;">Green Number</th>
                                 <th>Item Name</th>
@@ -47,7 +47,7 @@
                 {% set current_borrower.name = loan.borrower_name %}
             {% endif %}
                         <tr class="loan-row clickable-row {% if loan.is_overdue %}overdue{% endif %}"
-                            data-borrower="{{ loan.borrower_name }}"
+                            data-borrower="{{ loan.borrower_name|replace(' ', '-') }}"
                             onclick="window.location.href='{{ url_for('loan_details', id=loan['id']) }}'">
                             <td style="width: 40px;" onclick="event.stopPropagation()">
                                 <input type="checkbox" name="loan_ids[]" value="{{ loan.id }}" class="loan-checkbox">
@@ -190,17 +190,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function toggleBorrower(borrowerName) {
-    const tableId = `loans-${borrowerName.replace(' ', '-')}`;
-    const iconId = `toggle-${borrowerName.replace(' ', '-')}`;
+    // Create a consistent ID by replacing all spaces with hyphens
+    const sanitizedName = borrowerName.replace(/\s+/g, '-');
+    const tableId = `loans-${sanitizedName}`;
+    const iconId = `toggle-${sanitizedName}`;
+
     const table = document.getElementById(tableId);
     const icon = document.getElementById(iconId);
 
-    if (table.style.display === 'none') {
-        table.style.display = 'table';
-        icon.textContent = '▲';
-    } else {
-        table.style.display = 'none';
-        icon.textContent = '▼';
+    if (table && icon) {
+        if (table.style.display === 'none') {
+            table.style.display = 'table';
+            icon.textContent = '▲';
+        } else {
+            table.style.display = 'none';
+            icon.textContent = '▼';
+        }
     }
 }
 </script>

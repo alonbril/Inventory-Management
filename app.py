@@ -75,6 +75,10 @@ def get_sort_params():
 
     return sort_field, sort_direction
 
+@app.context_processor
+def inject_year():
+    return {'year': datetime.now().year}
+
 @app.template_filter('max')
 def max_filter(a, b):
     return max(a, b)
